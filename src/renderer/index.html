@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
+    />
+    <title>Brief</title>
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <!-- The window is frameless, so this row is both the wordmark and the drag
+         handle, and carries the window buttons. Same arrangement as the rest of
+         the suite. -->
+    <header class="app-header">
+      <div class="brand">
+        <!-- The mark, drawn inline rather than loaded from resources/icon.png:
+             at 20px next to 17px text, a downscaled 512px bitmap is soft exactly
+             where the eye is most critical.
+
+             This is the icon's SMALL drawing - two lines and the rule, not
+             three and the rule - for the same reason generate-icon.mjs drops a
+             line below 32px. Geometry matches FULL/SMALL there; change one,
+             change the other. -->
+        <svg class="brand-mark" width="20" height="20" viewBox="0 0 100 100" aria-hidden="true">
+          <!-- userSpaceOnUse, not the default: an objectBoundingBox gradient
+               renders nothing at all on a zero-height shape, and every line here
+               is one. Nib shipped an invisible slit for weeks that way. -->
+          <linearGradient id="brief-mark" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="100">
+            <stop offset="0" stop-color="#9a94f0" />
+            <stop offset="1" stop-color="#6a60c9" />
+          </linearGradient>
+          <g stroke="url(#brief-mark)" stroke-linecap="round" fill="none">
+            <path d="M20 23 L80 23" stroke-width="12.5" />
+            <path d="M20 44 L56 44" stroke-width="12.5" />
+            <!-- Wider than the text and set well below it. That overhang is
+                 what stops three horizontal bars reading as a hamburger menu,
+                 which the first draft of this mark did. -->
+            <path d="M12 80 L88 80" stroke-width="16.5" />
+          </g>
+        </svg>
+        <span class="wordmark">Brief</span>
+        <span class="version" id="version"></span>
+      </div>
+      <div class="header-right">
+        <span class="dateline" id="dateline"></span>
+        <div class="window-controls">
+          <button type="button" data-window="minimize" title="Minimise">–</button>
+          <button type="button" data-window="maximize" title="Maximise">□</button>
+          <button type="button" data-window="close" class="danger" title="Close">×</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="page" id="page"></main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

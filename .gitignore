@@ -1,0 +1,27 @@
+node_modules/
+out/
+dist/
+.vite/
+
+# Brief's own data. A brief is assembled out of your Jot board and your Tend
+# store, so it quotes work in progress and, in the confirm section, named
+# colleagues. It never belongs in a repository, even a private one.
+data/
+brief.json
+archive/
+
+npm-debug.log*
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+
+resources/*.tmp
+
+# Screenshot and capture output. Never committed - a screenshot of your own app
+# shows whatever was on screen. Helm had seven of these in a public repo before
+# anyone noticed; see keel/hooks/no-leaky-assets.mjs.
+screenshots/
+**/screenshots/
+captures/
+**/captures/
+docs/*.png

@@ -277,6 +277,13 @@ try {
     }
   });
 
+  const hasButton = await page.count('[data-make]');
+  check('offers to write one, for a machine with no scheduled task', () => {
+    if (hasButton !== 1) {
+      throw new Error('no button to write a brief');
+    }
+  });
+
   const empty = await page.text('.empty');
   check('says nothing is wrong, because nothing is', () => {
     if (!/No brief for today/.test(empty)) {
@@ -319,6 +326,22 @@ try {
     // wrong, it becomes furniture and stops being read when something is.
     if (modelWarning !== 0) {
       throw new Error('the model warning showed for a correctly-produced brief');
+    }
+  });
+
+  const written = await page.text('.written');
+  check('and says when it was written and by what', () => {
+    // "Is this fresh" is the first question on opening the window, and the date
+    // does not answer it.
+    if (!/Written .* by haiku then sonnet/.test(written)) {
+      throw new Error(`expected a written-at line naming both models, saw "${written.trim()}"`);
+    }
+  });
+
+  const noButtonNow = await page.count('[data-make]');
+  check('and stops offering to write one, because today is written', () => {
+    if (noButtonNow !== 0) {
+      throw new Error('the write button is still there with a brief already in place');
     }
   });
 

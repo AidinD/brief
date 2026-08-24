@@ -21,6 +21,7 @@ import { registerWindowControls } from 'keel/window';
 
 import { resolveDataDir, resolveJotDir } from '../domain/paths.js';
 import * as api from '../service/api.js';
+import { runMorning } from '../service/run.js';
 import { openStore } from '../storage/store.js';
 
 const { autoUpdater } = electronUpdater;
@@ -31,6 +32,9 @@ const jot = resolveJotDir();
 
 /** @type {string[]} */
 const warnings = [];
+
+/** One run at a time. The button and the scheduled task can collide. */
+let running = false;
 
 /** Last thing the updater said, so the window can show it. */
 let updateStatus = 'No update check has run yet.';
@@ -69,6 +73,40 @@ const OPERATIONS = {
   outbound: () => api.outbound({ dataDir: dir, jotDir: jot.dir }),
   setOutbound: (/** @type {any} */ a) => api.setOutbound({ dataDir: dir }, a),
   refreshOutbound: () => api.refreshOutbound({ dataDir: dir, jotDir: jot.dir }),
+
+  /**
+   * Write today's brief now.
+   *
+   * The app does not fetch and still does not: this starts the same two sessions
+   * the scheduled task starts, from the same code. It exists because Brief also
+   * runs on machines where no task is installed, and on those the alternative is
+   * a terminal - which makes the app unusable for its own purpose.
+   *
+   * It is not a refresh button. It does nothing when today's brief already
+   * exists, so there is nothing to gain by pressing it twice, which is the only
+   * property that matters here.
+   */
+  makeBrief: async (/** @type {any} */ a) => {
+    if (running) {
+      return { error: 'Already running.' };
+    }
+    running = true;
+    try {
+      return await runMorning({
+        dataDir: dir,
+        jotDir: jot.dir,
+        // Only a working directory for the sessions; nothing is read from it.
+        repoDir: dir,
+        force: a?.force === true,
+        onReport: (stage, message) => {
+          mainWindow?.webContents.send('brief:progress', { stage, message });
+        }
+      });
+    } finally {
+      running = false;
+      mainWindow?.webContents.send('brief:progress', null);
+    }
+  },
 
   interests: () => api.interests({ dataDir: dir }),
   setInterest: (/** @type {any} */ a) => api.setInterestOp({ dataDir: dir }, a),

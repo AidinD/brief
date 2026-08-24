@@ -238,6 +238,43 @@ button {
   margin: 4px 0 22px;
 }
 
+/*
+ * When it was written, and by what.
+ *
+ * Always present, unlike the warning above it - "is this fresh" is the first
+ * question on opening the window, and the date does not answer it. A brief can
+ * carry today's date and have been written at midnight off yesterday's news.
+ */
+.written {
+  margin: 7px 0 0;
+  color: var(--text-faint);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A run in flight. Not amber - nothing is wrong, something is happening. */
+.problems.working {
+  border-color: var(--accent-deep);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.make {
+  margin-top: 4px;
+  padding: 7px 16px;
+  border: 1px solid var(--accent-deep);
+  border-radius: var(--r);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 13.5px;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.make:hover {
+  background: var(--accent-deep);
+  color: #1b1c1f;
+}
+
 .masthead-title {
   margin: 2px 0 0;
   font-size: 27px;

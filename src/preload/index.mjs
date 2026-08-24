@@ -30,5 +30,18 @@ contextBridge.exposeInMainWorld('brief', {
     return () => ipcRenderer.removeListener('brief:changed', handler);
   },
 
+  /**
+   * Progress while a brief is being written. `null` means the run has ended,
+   * one way or the other.
+   *
+   * @param {(progress: { stage: string, message: string } | null) => void} callback
+   * @returns {() => void}
+   */
+  onProgress: (callback) => {
+    const handler = (/** @type {unknown} */ _event, /** @type {any} */ progress) => callback(progress);
+    ipcRenderer.on('brief:progress', handler);
+    return () => ipcRenderer.removeListener('brief:progress', handler);
+  },
+
   ...windowControlsBridge(ipcRenderer)
 });

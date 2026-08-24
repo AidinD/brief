@@ -86,33 +86,63 @@ not the filter; ${outboundPath(dataDir)} is.`;
 /**
  * The judge step: read the pool, decide, write the brief.
  *
+ * Deliberately self-contained. An earlier version told the session to go and
+ * read `docs/format.md`, which fails in the packaged app twice over: `docs/` is
+ * not shipped, and a spawned process cannot read inside an asar archive even
+ * when it is. An instruction that depends on a file the runner might not be able
+ * to open is an instruction that silently becomes something else.
+ *
  * @param {object} where
  * @param {string} where.dataDir
- * @param {string} where.repoDir Where docs/format.md lives.
  * @returns {string}
  */
-export function judgeAssignment({ dataDir, repoDir }) {
+export function judgeAssignment({ dataDir }) {
   return `Read ${join(dataDir, 'world.json')} and write ${join(dataDir, 'brief.json')}.
 
-Follow ${join(repoDir, 'docs', 'format.md')} - it is the contract, including the
-caps, which are enforced whether you respect them or not.
+Shape:
+{
+  "version": 1,
+  "date": "<today, YYYY-MM-DD, LOCAL date>",
+  "generatedAt": <epoch ms>,
+  "provenance": { "fetch": "<copy from world.json>", "judge": "<the model id you are>" },
+  "world": {
+    "needsYou":     [{ "id": "...", "headline": "...", "why": "...", "anchor": "...",
+                       "sources": [{ "title": "...", "url": "https://..." }] }],
+    "worthKnowing": [ ...same shape... ]
+  },
+  "week":    { "summary": "one paragraph", "moments": [{ "id": "...", "when": "Monday", "text": "..." }] },
+  "confirm": [{ "id": "...", "kind": "decision|story|delegation|person", "text": "...",
+                "why": "...", "evidence": "..." }],
+  "notes":   ["anything you want to say about this run"]
+}
 
-Your job:
-- Sort the candidates into needs-you and worth-knowing. Needs-you means something
-  changes for them: a decision to make, a number in a plan, a deadline. "Important
-  in general" is worth-knowing at best.
-- Write the prose in Swedish, keeping å, ä and ö.
-- Fill the week section from what actually happened, if you can see it. Leave it
-  empty rather than inventing it.
-- For the confirm section, read the three rules in docs/format.md first. It must be
-  about the reader and not about you; a decision already recorded in a repo's
-  DECISIONS.md is not a candidate; generate from what lacks a record rather than
-  from what was written recently. Read ${join(dataDir, 'confirmed.jsonl')} - what was
-  rejected before is a filter, and a suggestion resembling a past rejection should
-  not be made again.
-- Set provenance.fetch from world.json and provenance.judge to the model you are.
-  A brief that records neither is treated as a failure by the window, correctly.
+Caps, enforced whether you respect them or not - over them, the extras are
+dropped and the window says so: needsYou 5, worthKnowing 7, moments 6, confirm 5.
+Fewer is better. A brief has a bottom; that is the product.
 
-Write brief.json to a temporary file in the same directory and rename it into
-place. The window is watching and a plain write is visible half-finished.`;
+The world section:
+- needs-you means something CHANGES for them - a decision to make, a number in a
+  plan, a deadline. "Important in general" is worth-knowing at best.
+- Do not infer what they do for a living. An interest in a platform is not
+  evidence that they ship on it, and a "needs you" that needs somebody else costs
+  more trust than a missed story.
+
+The week section: fill it from what actually happened if you can see it. Leave it
+empty rather than inventing it.
+
+The confirm section, which is the point of the whole app. Three rules:
+- It must be about the reader, not about you. A story bank holds stories its
+  owner can tell in the first person. Your own mistakes and reversals belong in a
+  CLAUDE.md, not here, however good the lesson.
+- A decision already recorded in a repo's DECISIONS.md is not a candidate. A
+  second copy is worse than none, because copies drift. What belongs here is the
+  decision with nowhere to live.
+- Generate from what LACKS a record, not from what was written recently. Recency
+  is not the same as needing to be kept.
+Read ${join(dataDir, 'confirmed.jsonl')} first: what was rejected before is a
+filter, and a suggestion resembling a past rejection should not be made again.
+
+Write the prose in Swedish, keeping å, ä and ö. Write to a temporary file in the
+same directory and rename it into place - the window is watching, and a plain
+write is visible half-finished.`;
 }

@@ -113,9 +113,14 @@ export function draftOutbound(dataDir, holdings) {
     entries.push(leftover);
   }
 
-  const path = outboundPath(dataDir);
+  writeOutbound(dataDir, entries);
+  return { path: outboundPath(dataDir), added, total: entries.length };
+}
+
+/** @param {string} dataDir @param {Entry[]} entries */
+function writeOutbound(dataDir, entries) {
   writeFileSync(
-    path,
+    outboundPath(dataDir),
     `${JSON.stringify(
       {
         _: [
@@ -130,6 +135,44 @@ export function draftOutbound(dataDir, holdings) {
     )}\n`,
     'utf8'
   );
+}
 
-  return { path, added, total: entries.length };
+/**
+ * Change one entry, creating it if the list has not seen it.
+ *
+ * One at a time, and there is deliberately no "allow everything" anywhere in
+ * this module. The decision the file records is per item by design, and a switch
+ * that flips fifty of them is a switch that gets flipped without reading -
+ * which leaves you with the leak the list exists to prevent, plus the false
+ * comfort of having a list.
+ *
+ * @param {string} dataDir
+ * @param {{ label: string, kind?: string, send?: boolean, as?: string | null }} change
+ * @returns {Entry[]} The list as it now stands.
+ */
+export function setEntry(dataDir, change) {
+  const label = String(change.label ?? '').trim();
+  if (label === '') {
+    throw new Error('An outbound entry needs a label.');
+  }
+
+  const kind = change.kind ?? 'area';
+  const entries = readOutbound(dataDir);
+  const key = `${kind}|${label.toLowerCase()}`;
+  const existing = entries.find((entry) => `${entry.kind}|${entry.label.toLowerCase()}` === key);
+  const as = change.as === null || change.as === undefined ? undefined : String(change.as).trim() || undefined;
+
+  if (existing === undefined) {
+    entries.push({ label, kind, send: change.send === true, as });
+  } else {
+    if (change.send !== undefined) {
+      existing.send = change.send === true;
+    }
+    if ('as' in change) {
+      existing.as = as;
+    }
+  }
+
+  writeOutbound(dataDir, entries);
+  return entries;
 }

@@ -389,6 +389,72 @@ try {
     }
   });
 
+  /* ------------------------------------------------------- the send list -- */
+
+  step('Deciding what may leave the machine');
+
+  await page.click('#view-toggle');
+  await page.waitFor("document.querySelector('.empty, .send-row') !== null", 'the send list');
+
+  const untouched = await page.text('#page');
+  check('nothing is cleared to send before anyone has looked', () => {
+    if (!/Nothing to review yet|Nothing is cleared to send/.test(untouched)) {
+      throw new Error(`expected an empty send list, saw "${untouched.slice(0, 200)}"`);
+    }
+  });
+
+  await page.click('[data-refresh]');
+  await page.waitFor("document.querySelectorAll('.send-row').length > 0", 'the board to be read in');
+
+  const rows = await page.count('.send-row');
+  const ticked = await page.count('.send-row input:checked');
+  check('the board arrives as rows, every one of them switched off', () => {
+    if (rows !== 2) {
+      throw new Error(`expected two rows from the fixture board, saw ${rows}`);
+    }
+    if (ticked !== 0) {
+      throw new Error(`${ticked} row(s) arrived already ticked - the default must be off`);
+    }
+  });
+
+  const noAllowAll = await page.evaluate(
+    "document.querySelectorAll('[data-allow-all], .allow-all').length === 0"
+  );
+  check('and there is no button that ticks all of them at once', () => {
+    if (noAllowAll !== true) {
+      throw new Error('found an allow-everything control');
+    }
+  });
+
+  // Tick one, give it an alias, and check the window quotes what would leave -
+  // not the label it came from.
+  await page.click('.send-row input[type="checkbox"]');
+  await page.waitFor("document.querySelector('.sending-list') !== null", 'the preview');
+
+  await page.evaluate(`(() => {
+    const box = document.querySelector('.send-as');
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(box, 'a neutral description');
+    box.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  })()`);
+  await page.waitFor(
+    "/a neutral description/.test((document.querySelector('.sending-list') || {}).textContent || '')",
+    'the alias to reach the preview'
+  );
+
+  const preview = await page.text('.sending-list');
+  check('the preview quotes what would be sent, not the name behind it', () => {
+    if (!/a neutral description/.test(preview)) {
+      throw new Error(`the alias never reached the preview: "${preview}"`);
+    }
+    if (/Northwind/.test(preview)) {
+      throw new Error(`the real label leaked into the preview: "${preview}"`);
+    }
+  });
+
+  await page.click('#view-toggle');
+  await page.waitFor("document.querySelector('.end-note') !== null", 'the brief again');
+
   /* --------------------------------------------------------- scrolling -- */
 
   step('Scrolling');

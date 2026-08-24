@@ -57,6 +57,10 @@ const OPERATIONS = {
   answer: (/** @type {any} */ a) => api.answer(store, a.id, a.verdict, Date.now()),
   context: () => api.context({ dataDir: dir, jotDir: jot.dir }),
 
+  outbound: () => api.outbound({ dataDir: dir, jotDir: jot.dir }),
+  setOutbound: (/** @type {any} */ a) => api.setOutbound({ dataDir: dir }, a),
+  refreshOutbound: () => api.refreshOutbound({ dataDir: dir, jotDir: jot.dir }),
+
   openDataDir: async () => {
     const problem = await shell.openPath(dir);
     return problem ? { error: problem } : { opened: dir };

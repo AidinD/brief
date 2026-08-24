@@ -32,7 +32,7 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { resolveDataDir, resolveJotDir } from '../src/domain/paths.js';
+import { requireDataDir, resolveJotDir } from '../src/domain/paths.js';
 import { holdings } from '../src/service/holdings.js';
 import { draftOutbound, outboundPath, sendable } from '../src/service/outbound.js';
 
@@ -41,7 +41,7 @@ const MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
 
 const dry = process.argv.includes('--dry');
 const review = process.argv.includes('--review');
-const { dir } = resolveDataDir(process.cwd());
+const dir = requireDataDir();
 const jot = resolveJotDir();
 
 if (review) {

@@ -162,6 +162,101 @@ function problemsNote(problems) {
     </div>`;
 }
 
+/* ------------------------------------------------------ the send list -- */
+
+/**
+ * What may leave the machine, one row per thing you are holding.
+ *
+ * This page exists because the alternative was a JSON file, and a JSON file is
+ * a bad place to make fifty small privacy decisions - which means they do not
+ * get made, which means the list stays empty and the feature stays off.
+ *
+ * Two rules it keeps, both from `outbound.js`:
+ *
+ *   There is no "allow all". A switch that flips fifty rows is a switch that
+ *   gets flipped without reading them.
+ *
+ *   The page shows the terms that would *actually* be sent, verbatim, not just
+ *   which rows are on. An entry with an alias sends something other than its own
+ *   label, and a control you have to mentally compile is one you will misread.
+ */
+async function renderOutbound() {
+  const state = await brief.invoke('outbound');
+  const entries = state?.entries ?? [];
+  const sending = state?.sending ?? [];
+
+  dateline.textContent = '';
+  dateline.className = 'dateline';
+
+  const groups = new Map();
+  for (const entry of entries) {
+    if (!groups.has(entry.kind)) {
+      groups.set(entry.kind, []);
+    }
+    groups.get(entry.kind).push(entry);
+  }
+
+  const row = (/** @type {any} */ entry) => `
+    <label class="send-row${entry.send ? ' on' : ''}">
+      <input type="checkbox" data-send="${esc(entry.label)}" data-kind="${esc(entry.kind)}"${entry.send ? ' checked' : ''} />
+      <span class="send-label">${esc(entry.label)}</span>
+      <input
+        class="send-as"
+        type="text"
+        placeholder="send as…"
+        value="${esc(entry.as ?? '')}"
+        data-as="${esc(entry.label)}"
+        data-kind="${esc(entry.kind)}"
+        title="Send this description instead of the name itself"
+      />
+    </label>`;
+
+  page.innerHTML = `
+    <section class="section">
+      <h2 class="section-title">What may leave this machine</h2>
+      <p class="section-note">
+        Brief works out what you are holding by reading your Jot board. None of it
+        is sent unless you tick it here.
+      </p>
+      ${
+        sending.length === 0
+          ? '<p class="quiet">Nothing is cleared to send, so fetching the world will refuse.</p>'
+          : `<div class="sending-preview">
+               <div class="sending-head">${sending.length} ${sending.length === 1 ? 'term' : 'terms'} would be sent, exactly this:</div>
+               <ul class="sending-list">${sending
+                 .map((/** @type {any} */ s) => `<li>${esc(s.label)}</li>`)
+                 .join('')}</ul>
+             </div>`
+      }
+      ${
+        state?.unreviewed > 0
+          ? `<p class="section-note">${state.unreviewed} thing${state.unreviewed === 1 ? '' : 's'} on your board ${state.unreviewed === 1 ? 'is' : 'are'} not on this list yet.
+             <button class="inline-action" data-refresh="1">Add them, switched off</button></p>`
+          : ''
+      }
+    </section>
+
+    ${[...groups.entries()]
+      .map(
+        ([kind, rows]) => `
+          <section class="section">
+            <h2 class="section-title">${esc(kind)}</h2>
+            <div class="send-rows">${rows.map(row).join('')}</div>
+          </section>`
+      )
+      .join('')}
+
+    ${
+      entries.length === 0
+        ? `<div class="empty">
+             <h2>Nothing to review yet.</h2>
+             <p>Brief has not read your board, or the board is empty.</p>
+             <p><button class="inline-action" data-refresh="1">Read the board</button></p>
+           </div>`
+        : ''
+    }`;
+}
+
 async function render() {
   const [state, verdicts, status] = await Promise.all([
     brief.invoke('today'),
@@ -258,6 +353,23 @@ async function render() {
     </div>`;
 }
 
+/* ------------------------------------------------------------- routing -- */
+
+/** Two pages: the brief, and the send list. Not a router. */
+let view = 'brief';
+
+const toggle = /** @type {HTMLButtonElement} */ (document.getElementById('view-toggle'));
+
+async function draw() {
+  toggle.textContent = view === 'brief' ? 'Sending' : 'Back to the brief';
+  await (view === 'brief' ? render() : renderOutbound());
+}
+
+toggle.addEventListener('click', () => {
+  view = view === 'brief' ? 'outbound' : 'brief';
+  void draw();
+});
+
 // One delegated listener for the whole page, so a redraw cannot leak handlers.
 document.addEventListener('click', async (event) => {
   const target = event.target;
@@ -274,7 +386,47 @@ document.addEventListener('click', async (event) => {
   const answer = target.closest('[data-answer]');
   if (answer instanceof HTMLElement) {
     await brief.invoke('answer', { id: answer.dataset.id, verdict: answer.dataset.answer });
-    await render();
+    await draw();
+    return;
+  }
+
+  const refresh = target.closest('[data-refresh]');
+  if (refresh instanceof HTMLElement) {
+    await brief.invoke('refreshOutbound');
+    await draw();
+  }
+});
+
+/*
+ * The send list writes on change rather than behind a Save button.
+ *
+ * A Save button on a privacy control is a way to believe you have decided
+ * something you have not. The file is the truth, and it should agree with the
+ * screen at every moment.
+ */
+document.addEventListener('change', async (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement)) {
+    return;
+  }
+
+  if (target.dataset.send !== undefined) {
+    await brief.invoke('setOutbound', {
+      label: target.dataset.send,
+      kind: target.dataset.kind,
+      send: target.checked
+    });
+    await draw();
+    return;
+  }
+
+  if (target.dataset.as !== undefined) {
+    await brief.invoke('setOutbound', {
+      label: target.dataset.as,
+      kind: target.dataset.kind,
+      as: target.value
+    });
+    await draw();
   }
 });
 
@@ -296,7 +448,9 @@ document.querySelectorAll('[data-window]').forEach((button) => {
 // A brief written while the window is open appears on its own. No refresh
 // button, deliberately: a button that fetches is the first step towards a feed.
 brief.onChanged(() => {
-  void render();
+  if (view === 'brief') {
+    void render();
+  }
 });
 
-void render();
+void draw();

@@ -136,6 +136,22 @@ button {
   color: var(--warn);
 }
 
+.view-toggle {
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 12px;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.view-toggle:hover {
+  background: var(--surface-2);
+  border-color: var(--accent-deep);
+  color: var(--text);
+}
+
 .window-controls {
   display: flex;
   gap: 2px;
@@ -414,6 +430,113 @@ button {
   padding-top: 6px;
   font-size: 12px;
   color: var(--text-faint);
+}
+
+/* ---------------------------------------------------------- send list -- */
+
+/*
+ * The terms that would actually go out, quoted verbatim.
+ *
+ * Not a count and not a summary. An entry with an alias sends something other
+ * than its own label, so "3 items on" tells you nothing useful - the only
+ * honest display is the strings themselves.
+ */
+.sending-preview {
+  margin: 14px 0 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--accent-deep);
+  border-radius: var(--r);
+  background: var(--accent-soft);
+}
+
+.sending-head {
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.sending-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+.send-rows {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.send-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 7px 0;
+  border-top: 1px solid var(--line-soft);
+  cursor: pointer;
+}
+
+.send-rows > .send-row:first-child {
+  border-top: 0;
+}
+
+.send-row input[type='checkbox'] {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent-deep);
+  cursor: pointer;
+}
+
+.send-label {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A row that is on is the exception, so it is the one that gets the colour. */
+.send-row.on .send-label {
+  color: var(--text);
+}
+
+.send-as {
+  flex: none;
+  width: 210px;
+  padding: 3px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+}
+
+.send-as::placeholder {
+  color: var(--text-faint);
+}
+
+.send-as:focus {
+  border-color: var(--accent-deep);
+  outline: none;
+}
+
+.inline-action {
+  padding: 1px 8px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.inline-action:hover {
+  background: var(--surface-3);
+  color: var(--text);
 }
 
 /* ------------------------------------------------------------ the ended -- */

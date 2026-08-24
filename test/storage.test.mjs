@@ -102,13 +102,59 @@ test('a rejection is recorded, not just an acceptance', () => {
     store.write(brief)
 
     // Through the service layer, because that is what the window calls.
-    assert.deepEqual(api.answer(store, 'a', 'accepted', NOW), { id: 'a', verdict: 'accepted' })
-    assert.deepEqual(api.answer(store, 'b', 'rejected', NOW), { id: 'b', verdict: 'rejected' })
+    const yes = api.answer(store, 'a', 'accepted', NOW)
+    const no = api.answer(store, 'b', 'rejected', NOW)
+
+    assert.equal(yes.verdict, 'accepted')
+    assert.equal(no.verdict, 'rejected')
+    // A yes says where it was filed, so the window can tell you. A no has
+    // nowhere to be filed and must not claim otherwise.
+    assert.match(String(yes.keptAt), /kept\.md$/)
+    assert.equal(no.keptAt, null)
 
     // Both, deliberately. A generator whose suggestions are always turned down
     // has a bad filter, and there is no way to see that from the yeses alone.
     assert.deepEqual(api.answered(store), { a: 'accepted', b: 'rejected' })
     assert.equal(store.confirmed().length, 2)
+  })
+})
+
+test('keeping something writes it somewhere a person would read', () => {
+  scratch((dir) => {
+    const store = openStore({ dataDir: dir })
+    const brief = emptyBrief('2026-08-23', NOW)
+    brief.confirm = [
+      { id: 'a', kind: 'story', text: 'Worth keeping', why: 'because', evidence: 'helm' },
+      { id: 'b', kind: 'decision', text: 'Not worth keeping' }
+    ]
+    store.write(brief)
+
+    api.answer(store, 'a', 'accepted', NOW)
+    api.answer(store, 'b', 'rejected', NOW)
+
+    // A "Keep it" button whose only effect is a line in a log is a button that
+    // does nothing.
+    const kept = readFileSync(join(dir, 'kept.md'), 'utf8')
+    assert.match(kept, /Worth keeping/)
+    assert.match(kept, /because/)
+    assert.equal(/Not worth keeping/.test(kept), false, 'a rejection is not a keepsake')
+  })
+})
+
+test('keeping the same thing twice files it once', () => {
+  scratch((dir) => {
+    const store = openStore({ dataDir: dir })
+    const brief = emptyBrief('2026-08-23', NOW)
+    brief.confirm = [{ id: 'a', kind: 'story', text: 'Worth keeping' }]
+    store.write(brief)
+
+    api.answer(store, 'a', 'accepted', NOW)
+    api.answer(store, 'a', 'accepted', NOW)
+
+    // A double click is a double click. Two copies and you cannot tell later
+    // which one you meant.
+    const kept = readFileSync(join(dir, 'kept.md'), 'utf8')
+    assert.equal(kept.match(/Worth keeping/g)?.length, 1)
   })
 })
 

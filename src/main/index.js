@@ -61,6 +61,10 @@ const OPERATIONS = {
   setOutbound: (/** @type {any} */ a) => api.setOutbound({ dataDir: dir }, a),
   refreshOutbound: () => api.refreshOutbound({ dataDir: dir, jotDir: jot.dir }),
 
+  interests: () => api.interests({ dataDir: dir }),
+  setInterest: (/** @type {any} */ a) => api.setInterestOp({ dataDir: dir }, a),
+  removeInterest: (/** @type {any} */ a) => api.removeInterestOp({ dataDir: dir }, a),
+
   openDataDir: async () => {
     const problem = await shell.openPath(dir);
     return problem ? { error: problem } : { opened: dir };

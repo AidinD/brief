@@ -11,6 +11,8 @@
 
 import { localDate } from '../domain/time.js';
 import { holdings } from './holdings.js';
+import { readInterests, removeInterest, searchable, setInterest, weakness } from './interests.js';
+import { keep } from './keep.js';
 import { draftOutbound, readOutbound, sendable, setEntry } from './outbound.js';
 
 /**
@@ -42,8 +44,13 @@ export function answer(store, id, verdict, now) {
   if (candidate === undefined) {
     return { error: `No candidate with id "${id}" in today's brief.` };
   }
+
+  // The log records both verdicts. Only a yes gets written somewhere a person
+  // would actually read - a no is evidence about the generator, not a keepsake.
   store.confirm(candidate, verdict, now);
-  return { id, verdict };
+  const kept = verdict === 'accepted' ? keep(store.dataDir, candidate, now) : null;
+
+  return { id, verdict, keptAt: kept?.path ?? null };
 }
 
 /**
@@ -113,4 +120,42 @@ export function setOutbound({ dataDir }, change) {
 export function refreshOutbound({ dataDir, jotDir }) {
   const { added, total } = draftOutbound(dataDir, holdings({ dataDir, jotDir }));
   return { added, total };
+}
+
+/* -------------------------------------------------------------- interests -- */
+
+/**
+ * The standing topics, each carrying whatever the window should say about it.
+ *
+ * The advice travels with the row rather than being worked out in the renderer,
+ * so the window and the CLI say the same thing about the same term.
+ *
+ * @param {object} where
+ * @param {string} where.dataDir
+ */
+export function interests({ dataDir }) {
+  return {
+    interests: readInterests(dataDir).map((item) => ({ ...item, advice: weakness(item) })),
+    searching: searchable(dataDir)
+  };
+}
+
+/**
+ * @param {object} where
+ * @param {string} where.dataDir
+ * @param {{ term: string, why?: string | null, send?: boolean }} change
+ */
+export function setInterestOp({ dataDir }, change) {
+  setInterest(dataDir, change);
+  return { ok: true };
+}
+
+/**
+ * @param {object} where
+ * @param {string} where.dataDir
+ * @param {{ term: string }} which
+ */
+export function removeInterestOp({ dataDir }, which) {
+  removeInterest(dataDir, which.term);
+  return { ok: true };
 }

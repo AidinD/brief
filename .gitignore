@@ -33,3 +33,6 @@ screenshots/
 captures/
 **/captures/
 docs/*.png
+
+kept.md
+interests.json

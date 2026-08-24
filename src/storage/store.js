@@ -23,9 +23,7 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
 import { clamp, emptyBrief, parseBrief } from '../domain/brief.js';
-
-/** @param {string} text */
-const stripBom = (text) => (text.charCodeAt(0) === 0xfeff ? text.slice(1) : text);
+import { stripBom } from 'keel/storage';
 
 /**
  * @param {object} options

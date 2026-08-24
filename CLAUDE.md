@@ -97,7 +97,10 @@ next fetch will read it.
 ## keel
 
 Brief depends on **keel** (`github.com/AidinD/keel`), linked as `file:../keel` -
-so it must be checked out at `D:\Repo\Tools\keel` or `npm install` fails.
+so it must be checked out at `D:\Repo\Tools\keel`. `npm install` does **not**
+fail when it is missing - npm 11 links a missing `file:` dependency to a dangling
+symlink and exits 0, and the failure surfaces at the first import instead. Since
+keel is imported at runtime here, that looks like window buttons doing nothing.
 
 It is a real `dependency`, not a devDependency: Brief ships its source unbuilt,
 so `keel/window` is still an import at runtime and electron-builder has to pack

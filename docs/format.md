@@ -84,6 +84,31 @@ makes a filter useless.
 logging, candidate stories worth keeping, delegations that want checking in on,
 people who are drifting. Few, and specific.
 
+Three rules for it, all three learned by getting four out of five wrong on the
+first real day:
+
+**It must be about the reader, not about you.** Three of those five were the
+assistant's own mistakes and reversals - a bug chased from the wrong side, a
+typing decision undone. A story bank holds stories its owner can tell in the
+first person. "My agent got confused for five hours" answers no question anybody
+will ever ask them, however good the lesson is. Put that lesson in `CLAUDE.md`
+and leave the brief alone.
+
+**A decision that already has a home is not a candidate.** Two of the five were
+already in a repo's `DECISIONS.md`, in more detail, with the alternatives that
+lost. A second copy is worse than none, because copies drift. What belongs here
+is the decision with nowhere to live: an agreement between people, a thing the
+team stopped doing, a call someone will ask you to justify a year from now.
+
+**Generate from what lacks a record, not from what was recently written.** The
+failure was mechanical: the generator swept the last day's commits and
+DECISIONS entries, which is a list of things that by definition already have a
+record. Recency is not the same as needing to be kept.
+
+A first run at one useful suggestion in five is survivable. A steady rate of one
+in five is a section that costs more attention than it returns, and the
+rejections are how you can tell - they are recorded for exactly this.
+
 **Swedish keeps its å, ä and ö.** Write in whatever language the person thinks
 in; the file is UTF-8 and the window renders it as-is.
 

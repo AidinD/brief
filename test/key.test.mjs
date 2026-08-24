@@ -61,6 +61,27 @@ test('a trailing newline is trimmed, because pasting into an editor adds one', (
   })
 })
 
+test('a UTF-8 BOM does not become part of the key', () => {
+  scratch((dir) => {
+    // Notepad can save one, and the result looks perfect in an editor while the
+    // API returns a 400 that explains nothing.
+    writeFileSync(keyPath(dir), '﻿abc123\r\n', 'utf8')
+    assert.equal(readKey(dir)?.key, 'abc123')
+  })
+})
+
+test('a UTF-16 file saved by Notepad still yields the key', () => {
+  scratch((dir) => {
+    writeFileSync(keyPath(dir), Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from('abc123', 'utf16le')]))
+    assert.equal(readKey(dir)?.key, 'abc123')
+
+    const be = Buffer.from('abc123', 'utf16le')
+    be.swap16()
+    writeFileSync(keyPath(dir), Buffer.concat([Buffer.from([0xfe, 0xff]), be]))
+    assert.equal(readKey(dir)?.key, 'abc123')
+  })
+})
+
 test('an empty key file is the same as no key', () => {
   scratch((dir) => {
     // Otherwise the request goes out with an empty credential and the error

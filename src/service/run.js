@@ -37,20 +37,39 @@ import { fetchAssignment, judgeAssignment } from './assignment.js';
 /** @typedef {(stage: string, message: string) => void} Report */
 
 /**
+ * Exactly the tools each half needs, and nothing else.
+ *
+ * A headless `claude -p` session cannot use a tool it has not been granted: it
+ * asks for permission, nobody is there to answer, and it exits **0** having done
+ * nothing. That is how the first real run failed - cleanly, silently, with an
+ * explanation sitting in output nobody was reading.
+ *
+ * Listed rather than `--dangerously-skip-permissions`, and the fact that this
+ * runs unattended is the argument for least privilege rather than against it.
+ * The fetch reads the web and writes one file; it has no business editing
+ * anything. Neither has Bash.
+ */
+const TOOLS = {
+  fetch: ['WebSearch', 'WebFetch', 'Write'],
+  judge: ['Read', 'Write']
+};
+
+/**
  * Run one session, resolving to whether it exited cleanly.
  *
  * @param {string} model
+ * @param {string[]} tools
  * @param {string} prompt
  * @param {string} cwd
  * @param {Report} report
  * @param {string} stage
- * @returns {Promise<{ ok: boolean, reason?: string }>}
+ * @returns {Promise<{ ok: boolean, reason?: string, tail: string }>}
  */
-function session(model, prompt, cwd, report, stage) {
+function session(model, tools, prompt, cwd, report, stage) {
   return new Promise((resolve) => {
     // The prompt goes as one argument, never through a shell: assignments carry
     // newlines and quotes, and escaping them correctly is not a thing to rely on.
-    const child = spawn('claude', ['--model', model, '-p', prompt], {
+    const child = spawn('claude', ['--model', model, '--allowedTools', ...tools, '-p', prompt], {
       cwd,
       stdio: ['ignore', 'pipe', 'pipe'],
       shell: false
@@ -74,18 +93,18 @@ function session(model, prompt, cwd, report, stage) {
           ? 'The `claude` command was not found. It has to be on PATH for whatever started Brief - which is not always true for an app launched from the Start menu.'
           : err.message;
       report(stage, `failed: ${reason}`);
-      resolve({ ok: false, reason });
+      resolve({ ok: false, reason, tail });
     });
 
     child.on('close', (code) => {
       clearTimeout(timer);
       if (code === 0) {
-        resolve({ ok: true });
+        resolve({ ok: true, tail });
         return;
       }
       const reason = `exited ${code}${tail.trim() === '' ? '' : `: ${tail.trim().slice(-400)}`}`;
       report(stage, `failed: ${reason}`);
-      resolve({ ok: false, reason });
+      resolve({ ok: false, reason, tail });
     });
   });
 }
@@ -130,29 +149,35 @@ export async function runMorning({ dataDir, jotDir, repoDir, force = false, onRe
   }
 
   report('fetch', `starting on ${MODELS.fetch.id}`);
-  const fetched = await session(MODELS.fetch.id, assignment, repoDir, report, 'fetch');
+  const fetched = await session(MODELS.fetch.id, TOOLS.fetch, assignment, repoDir, report, 'fetch');
   if (!fetched.ok) {
     return { ok: false, reason: fetched.reason };
   }
 
   // Checked, not assumed. A session can exit 0 having written nothing, and a
-  // judge handed a missing file writes a brief out of thin air.
+  // judge handed a missing file writes a brief out of thin air. The tail goes in
+  // the message: exiting 0 with no file is exactly when the session's own last
+  // words are the whole explanation, and the first version threw them away.
   if (!existsSync(join(dataDir, 'world.json'))) {
-    const reason = 'the fetch exited cleanly but wrote no world.json';
+    const reason = `the fetch exited cleanly but wrote no world.json${
+      fetched.tail.trim() === '' ? '' : ` - it said: ${fetched.tail.trim().slice(-400)}`
+    }`;
     report('fetch', reason);
     return { ok: false, reason };
   }
   report('fetch', 'done');
 
   report('judge', `starting on ${MODELS.judge.id}`);
-  const judged = await session(MODELS.judge.id, judgeAssignment({ dataDir }), repoDir, report, 'judge');
+  const judged = await session(MODELS.judge.id, TOOLS.judge, judgeAssignment({ dataDir }), repoDir, report, 'judge');
   if (!judged.ok) {
     return { ok: false, reason: judged.reason };
   }
 
   const after = openStore({ dataDir }).read(today, now);
   if (after.missing) {
-    const reason = 'the judge exited cleanly but there is still no brief for today';
+    const reason = `the judge exited cleanly but there is still no brief for today${
+      judged.tail.trim() === '' ? '' : ` - it said: ${judged.tail.trim().slice(-400)}`
+    }`;
     report('judge', reason);
     return { ok: false, reason };
   }

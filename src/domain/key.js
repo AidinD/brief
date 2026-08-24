@@ -31,6 +31,34 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+/**
+ * Read a key file whatever Notepad decided to save it as.
+ *
+ * Three encodings turn up in practice and all three produce a key that looks
+ * right in an editor and fails at the API with a 400 that says nothing useful:
+ *
+ *   UTF-8 with a BOM        an invisible ﻿ before the first character
+ *   UTF-16LE with a BOM     every character followed by a NUL
+ *   UTF-16BE with a BOM     the same, the other way round
+ *
+ * Notepad's Save As offers all of them. Guessing wrong here costs an hour of
+ * looking at the wrong end of the problem, so it is worth the twelve lines.
+ *
+ * @param {string} path
+ */
+function readText(path) {
+  const bytes = readFileSync(path);
+  if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+    return bytes.subarray(2).toString('utf16le');
+  }
+  if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) {
+    // Node has no utf16be, so swap the pairs and read it as little-endian.
+    return bytes.subarray(2).swap16().toString('utf16le');
+  }
+  const text = bytes.toString('utf8');
+  return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+}
+
 /** @param {string} dataDir */
 export const keyPath = (dataDir) => join(dataDir, 'gemini.key');
 
@@ -57,7 +85,7 @@ export function readKey(dataDir) {
     }
     // Trimmed, because the overwhelmingly common way to create this file is to
     // paste a key into an editor, and editors add a trailing newline.
-    const key = readFileSync(candidate.path, 'utf8').trim();
+    const key = readText(candidate.path).trim();
     if (key !== '') {
       return { key, source: candidate.source };
     }

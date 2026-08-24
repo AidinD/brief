@@ -9,6 +9,14 @@ dist/
 data/
 brief.json
 archive/
+confirmed.jsonl
+holdings.json
+world.json
+# The send list. Names internal projects and private work by design - it is the
+# file the whole opt-in mechanism exists to make you read. A script once wrote
+# it here because it fell back to the current directory; that fallback is gone,
+# and this line is the belt to its braces.
+outbound.json
 
 npm-debug.log*
 *.tsbuildinfo

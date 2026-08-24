@@ -11,6 +11,7 @@
 
 import { localDate } from '../domain/time.js';
 import { holdings } from './holdings.js';
+import { draftOutbound, readOutbound, sendable, setEntry } from './outbound.js';
 
 /**
  * @param {ReturnType<typeof import('../storage/store.js').openStore>} store
@@ -67,3 +68,49 @@ export function answered(store) {
  * @param {string} where.jotDir
  */
 export const context = (where) => ({ holdings: holdings(where) });
+
+/**
+ * The send list, for review in the window.
+ *
+ * Returns the entries *and* the exact terms that would go out, because the
+ * second is the only thing that actually matters and it is not obvious from the
+ * first - an entry with `as` set sends something different from its own label.
+ * A privacy control you have to mentally compile is one you will misread.
+ *
+ * @param {object} where
+ * @param {string} where.dataDir
+ * @param {string} where.jotDir
+ */
+export function outbound({ dataDir, jotDir }) {
+  const entries = readOutbound(dataDir);
+  const held = holdings({ dataDir, jotDir });
+
+  // Which holdings the list has not been asked about yet. A board grows, and an
+  // item nobody has ruled on should look different from one ruled out.
+  const known = new Set(entries.map((entry) => `${entry.kind}|${entry.label.toLowerCase()}`));
+  const unreviewed = held.filter((holding) => !known.has(`${holding.kind}|${holding.label.toLowerCase()}`)).length;
+
+  return { entries, sending: sendable(dataDir), unreviewed, held: held.length };
+}
+
+/**
+ * @param {object} where
+ * @param {string} where.dataDir
+ * @param {{ label: string, kind?: string, send?: boolean, as?: string | null }} change
+ */
+export function setOutbound({ dataDir }, change) {
+  setEntry(dataDir, change);
+  return { ok: true };
+}
+
+/**
+ * Pull in anything new from the board, switched off.
+ *
+ * @param {object} where
+ * @param {string} where.dataDir
+ * @param {string} where.jotDir
+ */
+export function refreshOutbound({ dataDir, jotDir }) {
+  const { added, total } = draftOutbound(dataDir, holdings({ dataDir, jotDir }));
+  return { added, total };
+}

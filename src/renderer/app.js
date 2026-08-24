@@ -20,7 +20,8 @@
  *
  * @type {{
  *   invoke: (name: string, args?: Record<string, any>) => Promise<any>,
- *   onChanged: (callback: () => void) => () => void
+ *   onChanged: (callback: () => void) => () => void,
+ *   onProgress: (callback: (p: { stage: string, message: string } | null) => void) => () => void
  * } & ReturnType<typeof import("keel/window").windowControlsBridge>}
  */
 const brief = /** @type {any} */ (window).brief;
@@ -144,8 +145,68 @@ function nothingYet(status) {
         asking for one - into <code>${esc(status?.dataDir ?? 'the data directory')}\\brief.json</code>.
         This window notices the moment it appears.
       </p>
-      <p class="quiet">Nothing needs doing here. Close it and come back tomorrow.</p>
+      <p class="quiet">
+        On a machine with the morning task installed it appears on its own.
+        On one without, here is the button.
+      </p>
+      <p><button class="make" data-make="1">Write today's brief</button></p>
     </div>`;
+}
+
+/**
+ * What a run says while it is going.
+ *
+ * A fetch and a judgement take a couple of minutes between them, and a button
+ * that goes quiet for two minutes is a button people press again.
+ *
+ * @param {{ stage: string, message: string } | null} progress
+ */
+function progressNote(progress) {
+  if (progress === null) {
+    return '';
+  }
+  return `
+    <div class="problems working">
+      <span class="model-line">${esc(progress.stage)} — ${esc(progress.message)}</span>
+    </div>`;
+}
+
+/**
+ * When this brief was written, and by what.
+ *
+ * A quiet statement rather than a warning - the warning above only appears when
+ * something is wrong. This one is always there, because "is this fresh" is the
+ * first question you have on opening the window and reading the date does not
+ * answer it: a brief can carry today's date and have been written at midnight
+ * from yesterday's news.
+ *
+ * @param {any} brief
+ */
+function writtenLine(brief) {
+  const when =
+    typeof brief.generatedAt === 'number' && brief.generatedAt > 0
+      ? new Date(brief.generatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+      : null;
+
+  const models = ['fetch', 'judge']
+    .map((job) => {
+      const id = brief.provenance?.[job];
+      if (typeof id !== 'string' || id === '') {
+        return null;
+      }
+      // The family, not the dated id. Nobody reads a snapshot date.
+      return (/(fable|opus|sonnet|haiku)/i.exec(id)?.[1] ?? id).toLowerCase();
+    })
+    .filter(Boolean);
+
+  const by =
+    models.length === 0
+      ? 'by hand'
+      : models[0] === models[1]
+        ? `by ${models[0]}`
+        : `by ${models.join(' then ')}`;
+
+  return when === null ? `Written ${by}.` : `Written ${when}, ${by}.`;
 }
 
 /** @param {{ section: string, count: number }[]} dropped */
@@ -378,7 +439,7 @@ async function render() {
   dateline.title = stale ? 'This brief is not for today.' : '';
 
   if (missing) {
-    page.innerHTML = nothingYet(status);
+    page.innerHTML = progressNote(progress) + nothingYet(status);
     return;
   }
 
@@ -402,6 +463,7 @@ async function render() {
         : `${needs} things need you.`;
 
   page.innerHTML = `
+    ${progressNote(progress)}
     ${problemsNote(problems)}
     ${modelNote(state.models ?? [])}
     ${overflowNote(dropped)}
@@ -414,6 +476,7 @@ async function render() {
     <header class="masthead">
       <p class="eyebrow">${esc(longDate(today.date))}</p>
       <h1 class="masthead-title">${esc(shape)}</h1>
+      <p class="written">${esc(writtenLine(today))}</p>
     </header>
 
     <section class="section">
@@ -487,6 +550,16 @@ async function render() {
 /** Two pages: the brief, and the send list. Not a router. */
 let view = 'brief';
 
+/**
+ * What a run is doing right now, or null.
+ *
+ * Held outside render so a redraw does not lose it - the brief arriving
+ * mid-run triggers one.
+ *
+ * @type {{ stage: string, message: string } | null}
+ */
+let progress = null;
+
 const toggle = /** @type {HTMLButtonElement} */ (document.getElementById('view-toggle'));
 
 async function draw() {
@@ -515,6 +588,18 @@ document.addEventListener('click', async (event) => {
   const answer = target.closest('[data-answer]');
   if (answer instanceof HTMLElement) {
     await brief.invoke('answer', { id: answer.dataset.id, verdict: answer.dataset.answer });
+    await draw();
+    return;
+  }
+
+  const make = target.closest('[data-make]');
+  if (make instanceof HTMLElement) {
+    const result = await brief.invoke('makeBrief');
+    if (result?.error) {
+      progress = { stage: 'failed', message: result.error };
+    } else if (result?.ok === false) {
+      progress = { stage: 'failed', message: result.reason ?? 'the run did not finish' };
+    }
     await draw();
     return;
   }
@@ -618,6 +703,15 @@ document.querySelectorAll('[data-window]').forEach((button) => {
 // A brief written while the window is open appears on its own. No refresh
 // button, deliberately: a button that fetches is the first step towards a feed.
 brief.onChanged(() => {
+  if (view === 'brief') {
+    void render();
+  }
+});
+
+// A failure stays on screen until the next draw; a success is cleared by the
+// brief arriving, which is a better signal than any message.
+brief.onProgress((update) => {
+  progress = update;
   if (view === 'brief') {
     void render();
   }

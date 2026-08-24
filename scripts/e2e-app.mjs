@@ -511,7 +511,7 @@ try {
   const scrolled = JSON.parse(
     String(
       await page.evaluate(`(() => {
-        const box = document.querySelector('.scroll');
+        const box = document.querySelector('.app-scroll');
         box.scrollTop = box.scrollHeight;
         const header = document.querySelector('.app-header').getBoundingClientRect();
         return JSON.stringify({
@@ -524,6 +524,8 @@ try {
   );
 
   check('the page scrolls inside the window, and the header stays put', () => {
+    // The scroll container is keel's .app-scroll now, so this also proves the
+    // shared stylesheet loaded - out of the asar, in the packaged run.
     if (!scrolled.boxScrolled) {
       throw new Error('the brief was not long enough to scroll, so this proved nothing');
     }

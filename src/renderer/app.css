@@ -51,24 +51,11 @@
 }
 
 /*
- * The window is a fixed frame with one scrolling region inside it.
- *
- * `body` must NOT be the scroller. It was, and it took the header with it: in a
- * frameless window that row is the only drag handle and carries the only close
- * button, so scrolling it off screen loses control of the window.
+ * The height, the flex column, the background and the colour come from
+ * keel/shell.css - including the rule that `body` must never be the scroller,
+ * which is why that file exists. What is left here is how Brief reads.
  */
-html,
 body {
-  height: 100%;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--bg);
-  color: var(--text);
   font-family: var(--font);
   font-size: 14px;
   line-height: 1.5;
@@ -90,19 +77,12 @@ button {
 
 /* --------------------------------------------------------------- header -- */
 
+/* Proportions and the hairline. The layout is keel's. */
 .app-header {
-  flex: none;
-  display: flex;
-  align-items: center;
   gap: 12px;
   padding: 9px 14px 9px 18px;
   background: #191a1d;
   border-bottom: 1px solid var(--line-soft);
-  -webkit-app-region: drag;
-}
-
-.app-header button {
-  -webkit-app-region: no-drag;
 }
 
 .brand {
@@ -162,42 +142,9 @@ button {
   color: var(--text);
 }
 
-.window-controls {
-  display: flex;
-  gap: 2px;
-}
-
-.window-controls button {
-  width: 28px;
-  height: 24px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text-dim);
-  font-size: 13px;
-  line-height: 1;
-  transition: background 120ms ease, color 120ms ease;
-}
-
-.window-controls button:hover {
-  background: var(--surface-2);
-  color: var(--text);
-}
-
-.window-controls button.danger:hover {
-  background: var(--critical);
-  color: #1b1c1f;
-}
+/* The window buttons come from keel/shell.css, colours and all. */
 
 /* ----------------------------------------------------------------- page -- */
-
-/* The one scrolling region. */
-.scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
 
 /*
  * One column, and it is the window that is narrow rather than the column that

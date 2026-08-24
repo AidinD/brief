@@ -3,6 +3,62 @@
 Newest first. Each entry: the date, what was decided, what else was considered,
 and why this won.
 
+## 2026-08-24 - The mark is a cup, because the old one was furniture
+
+**Decided.** Brief's mark is a cup: a tapered body and a handle, one stroke
+weight, still periwinkle. The three ragged lines and the heavier rule under them
+are gone.
+
+**What was wrong with the old one.** Not the argument, which held up. The rule
+was wider than the text so it could not read as a hamburger menu, and the gap
+above it was nearly twice the line spacing. The picture lost anyway. Set beside
+the family at 76px and at 16px, Brief was the only app drawing a piece of
+interface rather than an object, and the only one with no curve in it. Jot draws
+a tick, Nib a nib, Loom a thread, Nudge a ring and an arrow, PomPom a tomato,
+Tend four tally marks, Helm a ship's wheel. A reader who has not read the
+generator's header comment sees a list-alignment icon, and the header comment is
+not shipped.
+
+**Eleven candidates, and two findings worth more than any of them.**
+
+*Paper collapses at icon size.* A sheet is a rectangle, and every rectangle is
+already spoken for: the file glyph, a window, a phone with a home button. A
+briefcase read perfectly and was rejected on meaning rather than on drawing, a
+folded note came out a window, a sealed dispatch came out a phone, and a rolled
+scroll came out a snail.
+
+*A disc plus anything horizontal is a finished glyph you did not choose.* Disc on
+a bar is a bowler hat. Disc above a curve is an avatar, head and shoulders. Disc
+inside a broken line is a slider handle. That was three attempts at the same
+sunrise idea, each landing on a different meaning that was not sunrise, and the
+semantics were the best of any candidate.
+
+**Why a cup wins.** The suite's surviving marks all share one structure: a closed
+form and one small distinguishing element. Ring and tick, ring and arrow, outline
+and slit, body and calyx. A cup is that shape of idea, and it survives 16px
+without any part being dropped, which the old mark could not do. The precedent
+for the object is PomPom, which draws a tomato rather than a timer: the ritual,
+not the mechanics. Brief is what you read once, early, before the day gets loud.
+
+**The known objection**, recorded because it will come back: a cup can be read as
+"a coffee app", and it says morning rather than briefing. The alternative that
+said briefing was a pilcrow, which is crisp at every size and is also the "show
+formatting" button in every word processor, so it fails the same way the old mark
+did. Meaning was traded for not being furniture.
+
+**What the handle costs.** Below 32px the body widens, the stroke thickens and
+the handle grows, because a handle at full-size proportions has its counter close
+up at 16px and a cup with a filled handle is a bucket. Same silhouette either
+way. Nib's generator is the warning against going further than that: it once drew
+a genuinely different mark for the small frames, and Windows showed one logo in
+the taskbar and another in search.
+
+The geometry exists twice, as it did before: `scripts/generate-icon.mjs` and the
+inline SVG in `src/renderer/index.html`, which is the SMALL drawing. The arc in
+the SVG was checked numerically against the generator rather than by eye: its
+large-arc and sweep flags resolve to centre (64, 47.5), r 14.5, running 255 to
+105 degrees clockwise, which is `SMALL.handle`.
+
 ## 2026-08-24 — One vendor, two models, and the check is on the artefact
 
 **Decided.** Gemini is gone. A Claude session does the whole world half, in two

@@ -53,7 +53,12 @@
       </div>
     </header>
 
-    <main class="page" id="page"></main>
+    <!-- The scroller is this element, not the body. The header above is the
+         window's only drag handle and carries its only close button, so it must
+         not be allowed to scroll away. -->
+    <main class="scroll">
+      <div class="page" id="page"></div>
+    </main>
 
     <script type="module" src="app.js"></script>
   </body>

@@ -502,6 +502,21 @@ button {
   color: var(--text-faint);
 }
 
+/*
+ * Where what you kept went.
+ *
+ * Keeping something used to grey a row out and do nothing visible, so the button
+ * read as a no-op and the whole section read as busywork. A count that grows and
+ * a file you can open is what makes it a control rather than a gesture.
+ */
+.kept-so-far {
+  margin: 16px 0 0;
+  padding-top: 13px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
 /* ---------------------------------------------------------- interests -- */
 
 .eyebrow {

@@ -336,10 +336,11 @@ async function renderOutbound() {
 }
 
 async function render() {
-  const [state, verdicts, status] = await Promise.all([
+  const [state, verdicts, status, keptSoFar] = await Promise.all([
     brief.invoke('today'),
     brief.invoke('answered'),
-    brief.invoke('status')
+    brief.invoke('status'),
+    brief.invoke('kept')
   ]);
 
   const version = document.getElementById('version');
@@ -448,6 +449,14 @@ async function render() {
               .join('')
           : '<p class="quiet">Nothing to confirm.</p>'
       }
+      ${
+        keptSoFar?.count > 0
+          ? `<p class="kept-so-far">
+               ${keptSoFar.count} thing${keptSoFar.count === 1 ? '' : 's'} kept so far.
+               <button class="inline-action" data-open-kept="1">Open kept.md</button>
+             </p>`
+          : '<p class="kept-so-far quiet">Nothing kept yet. What you keep is appended to kept.md, which you can open and read.</p>'
+      }
     </section>
 
     <div class="end">
@@ -490,6 +499,12 @@ document.addEventListener('click', async (event) => {
   if (answer instanceof HTMLElement) {
     await brief.invoke('answer', { id: answer.dataset.id, verdict: answer.dataset.answer });
     await draw();
+    return;
+  }
+
+  const openKept = target.closest('[data-open-kept]');
+  if (openKept instanceof HTMLElement) {
+    await brief.invoke('openKept');
     return;
   }
 

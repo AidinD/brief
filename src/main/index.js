@@ -54,6 +54,15 @@ const store = openStore({
 const OPERATIONS = {
   today: () => api.today(store, Date.now()),
   answered: () => api.answered(store),
+  kept: () => api.kept(store),
+
+  openKept: async () => {
+    // shell.openPath, not openExternal: this is a file the app wrote, and the
+    // point of the confirm section is that what you keep is somewhere you can
+    // actually go and read.
+    const problem = await shell.openPath(api.kept(store).path);
+    return problem ? { error: problem } : { opened: true };
+  },
   answer: (/** @type {any} */ a) => api.answer(store, a.id, a.verdict, Date.now()),
   context: () => api.context({ dataDir: dir, jotDir: jot.dir }),
 

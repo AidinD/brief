@@ -350,6 +350,18 @@ try {
     }
   });
 
+  const keptLine = await page.text('.kept-so-far');
+  check('and the window says where what you kept actually went', () => {
+    // The button used to grey a row out and do nothing visible, which made it
+    // read as a no-op. A count and a file you can open is the difference.
+    if (!/1 thing kept so far/.test(keptLine)) {
+      throw new Error(`no confirmation of where it went: "${keptLine.trim()}"`);
+    }
+    if (!/kept\.md/.test(keptLine)) {
+      throw new Error('the file it went into is not named');
+    }
+  });
+
   const remaining = await page.count('.candidate');
   check('and the candidate stays on the page rather than vanishing', () => {
     // The brief is the record of what was proposed. Removing an answered item

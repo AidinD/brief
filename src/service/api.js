@@ -9,6 +9,8 @@
  * will want that second client eventually; this is where it attaches.
  */
 
+import { join } from 'node:path';
+
 import { checkProvenance } from '../domain/models.js';
 import { localDate } from '../domain/time.js';
 import { holdings } from './holdings.js';
@@ -85,6 +87,21 @@ export function answered(store) {
  * @param {string} where.jotDir
  */
 export const context = (where) => ({ holdings: holdings(where) });
+
+/**
+ * How much you have kept, and where it went.
+ *
+ * The window needs this because "Keep it" was invisible: the row greyed out and
+ * nothing else happened, so the button read as a no-op and the section read as
+ * busywork. A growing file you can open is the difference between a control and
+ * a gesture.
+ *
+ * @param {ReturnType<typeof import('../storage/store.js').openStore>} store
+ */
+export function kept(store) {
+  const count = store.confirmed().filter((record) => record.verdict === 'accepted').length;
+  return { count, path: join(store.dataDir, 'kept.md') };
+}
 
 /**
  * The send list, for review in the window.

@@ -31,11 +31,9 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { stripBom } from 'keel/storage';
 
 /** @typedef {{ kind: string, label: string, detail?: string }} Holding */
-
-/** @param {string} text */
-const stripBom = (text) => (text.charCodeAt(0) === 0xfeff ? text.slice(1) : text);
 
 /**
  * Read Jot's board.

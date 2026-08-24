@@ -32,11 +32,9 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { stripBom } from 'keel/storage';
 
 /** @typedef {{ term: string, why?: string, send: boolean }} Interest */
-
-/** @param {string} text */
-const stripBom = (text) => (text.charCodeAt(0) === 0xfeff ? text.slice(1) : text);
 
 /** @param {string} dataDir */
 export const interestsPath = (dataDir) => join(dataDir, 'interests.json');

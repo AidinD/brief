@@ -23,12 +23,10 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { stripBom } from 'keel/storage';
 
 /** @typedef {import('./holdings.js').Holding} Holding */
 /** @typedef {{ label: string, kind: string, send: boolean, as?: string }} Entry */
-
-/** @param {string} text */
-const stripBom = (text) => (text.charCodeAt(0) === 0xfeff ? text.slice(1) : text);
 
 /** @param {string} dataDir */
 export const outboundPath = (dataDir) => join(dataDir, 'outbound.json');

@@ -43,8 +43,21 @@ Brief does not fetch anything. Something else writes `brief.json` into the data
 directory and the window notices. No server, no port, nothing to authenticate
 against — the same shape that made Jot useful to agents in the first place.
 
-[docs/format.md](docs/format.md) is the contract. To see the window with
-something in it:
+[docs/format.md](docs/format.md) is the contract.
+
+**Put the data directory on a real path**, not the default `userData` one:
+
+```bash
+setx BRIEF_DATA_DIR "D:\Dropboxrief"
+```
+
+Partly for laptop-to-desktop syncing, but mainly because an agent session runs
+in a sandbox that redirects writes under `%APPDATA%` into a private overlay. A
+brief written to `userData` from such a session is visible to that session and
+to nothing else - including the app you actually opened, which will correctly
+tell you there is no brief. See DECISIONS.md.
+
+To see the window with something in it:
 
 ```bash
 npm run sample

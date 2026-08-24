@@ -22,6 +22,32 @@ somebody deciding it should be, the change is wrong.
 
 Raising a cap is a real decision, not a tweak. Write it in DECISIONS.md.
 
+## A brief you write may be invisible to the app
+
+**The data directory must be a real path, not `userData`.** Point
+`BRIEF_DATA_DIR` at something like `D:\Dropbox\brief` and keep it there.
+
+An agent session runs in a sandbox where writes under `%APPDATA%` are
+redirected into a private per-process overlay. So a brief written to the default
+`userData` directory lands in that overlay: the session can list it, read it,
+parse it, and even launch Brief itself and watch it render - because a process
+the session spawns inherits the same overlay - while the app the user actually
+launched from the Start menu reads the real path and correctly reports that
+there is no brief.
+
+Everything looks consistent from inside. This cost a long debugging detour:
+the file existed, the store parsed it, `fs.watch` fired, the dev build rendered
+it, and the packaged binary rendered it - all from spawned processes. The user's
+own window said `missing: true` the whole time, and it was right.
+
+The tell: **the user's instance disagrees with yours about a file.** When that
+happens, stop testing from your own side. Jot hit this first and its notes say
+the same thing - verify against the user's own app instance, never one you
+spawned.
+
+Anything written to `D:` is real and crosses the boundary fine, which is why the
+installer reached the user when the brief did not.
+
 ## The privacy line, which is easy to erase by accident
 
 **What Brief knows and what Brief may send are different facts.**

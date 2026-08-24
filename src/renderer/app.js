@@ -169,20 +169,37 @@ function overflowNote(dropped) {
  * money spent for an answer nobody can tell apart, and nothing else would ever
  * reveal it: the output looks identical either way.
  *
- * @param {{ expected: string, ran: string | null, note?: string }[]} models
+ * @param {{ expected: string, ran: string | null, job: string, short: string | null }[]} models
  */
 function modelNote(models) {
   if (models.length === 0) {
     return '';
   }
+
+  /*
+   * Short, and it names the remedy.
+   *
+   * The first version pasted the whole rationale for each tier into the box -
+   * two dense paragraphs about where the money belongs - which read as a wall
+   * and, worse, read as "your configuration is broken". The usual cause is
+   * neither: it is a brief somebody wrote by hand. Say what ran, say what was
+   * meant to, and say the one command that does it properly. The reasoning
+   * belongs in DECISIONS.md, where it is not in the way.
+   */
+  const lines = models
+    .map((model) => {
+      const ran = model.ran === null ? 'Nothing recorded which model made this' : `${esc(model.short)} did the ${esc(model.job)}`;
+      return `<div><span class="model-line">${ran}</span><span class="mono">${esc(model.ran ?? '—')} → ${esc(model.expected)}</span></div>`;
+    })
+    .join('');
+
   return `
     <div class="problems models">
-      ${models
-        .map(
-          (model) =>
-            `<div>${esc(model.note ?? '')} <span class="mono">${esc(model.ran ?? 'nothing recorded')} → expected ${esc(model.expected)}</span></div>`
-        )
-        .join('')}
+      ${lines}
+      <div class="model-remedy">
+        A brief written by hand records whoever wrote it. The morning run uses the
+        right model for each half - <span class="mono">npm run morning</span> prints its two commands.
+      </div>
     </div>`;
 }
 

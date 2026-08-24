@@ -50,17 +50,12 @@ export const MODELS = {
  *
  * @param {string | undefined} ran
  * @param {'fetch' | 'judge'} job
- * @returns {{ ok: boolean, expected: string, ran: string | null, note?: string }}
+ * @returns {{ ok: boolean, expected: string, ran: string | null, job: string, short: string | null }}
  */
 export function checkProvenance(ran, job) {
   const expected = MODELS[job].id;
   if (ran === undefined || ran.trim() === '') {
-    return {
-      ok: false,
-      expected,
-      ran: null,
-      note: 'Nothing recorded which model produced this, so there is no way to tell.'
-    };
+    return { ok: false, expected, ran: null, job, short: null };
   }
 
   const family = (/** @type {string} */ id) => {
@@ -71,15 +66,16 @@ export function checkProvenance(ran, job) {
   const wanted = family(expected);
   const actual = family(ran);
   if (wanted === actual) {
-    return { ok: true, expected, ran };
+    return { ok: true, expected, ran, job, short: actual };
   }
 
-  // Named rather than generic, because "wrong model" is not actionable and
-  // "Opus did the fetching" is.
-  return {
-    ok: false,
-    expected,
-    ran,
-    note: `${actual} did the ${job}; ${wanted} was meant to. ${MODELS[job].why}`
-  };
+  /*
+   * The family name and the job, separately, so the window can phrase it.
+   *
+   * `note` used to carry the whole rationale for the tier - a paragraph about
+   * where the money belongs - and pasting that into a warning box made it read
+   * as a wall and as an accusation about configuration. The reasoning lives in
+   * MODELS[job].why for anyone who wants it; a warning needs the fact.
+   */
+  return { ok: false, expected, ran, job, short: actual };
 }

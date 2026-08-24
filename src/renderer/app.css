@@ -840,6 +840,32 @@ button {
   padding-left: 18px;
 }
 
+/*
+ * One fact per line, with the ids pushed to the right where they do not crowd it.
+ *
+ * `:not(.model-remedy)` is load-bearing: without it the remedy sentence became a
+ * flex container too and broke into three columns around its inline `npm run
+ * morning`. A selector that catches a sibling it was not written for.
+ */
+.problems.models > div:not(.model-remedy) {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.model-line {
+  flex: 1;
+  min-width: 0;
+}
+
+.model-remedy {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(217, 164, 65, 0.25);
+  color: var(--text-dim);
+  display: block;
+}
+
 .quiet {
   margin: 10px 0 0;
   color: var(--text-faint);

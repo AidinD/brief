@@ -830,3 +830,9 @@ button {
   color: var(--text-faint);
   font-style: italic;
 }
+
+.mono {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  opacity: 0.85;
+}

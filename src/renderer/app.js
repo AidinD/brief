@@ -155,9 +155,34 @@ function overflowNote(dropped) {
   }
   const parts = dropped.map((d) => `${d.count} from ${d.section}`).join(', ');
   return `
-    <div class="problems">
+    <div class="problems overflow">
       This brief was over its limit and ${parts} did not make it.
       <ul><li>A brief that keeps overflowing has a filter problem, not a length problem.</li></ul>
+    </div>`;
+}
+
+/**
+ * Which model actually produced this, when it is not the one that should have.
+ *
+ * Silent when everything is as intended - this is not a status readout, it is a
+ * warning. Loud when it is wrong, because "the big model did the fetching" is
+ * money spent for an answer nobody can tell apart, and nothing else would ever
+ * reveal it: the output looks identical either way.
+ *
+ * @param {{ expected: string, ran: string | null, note?: string }[]} models
+ */
+function modelNote(models) {
+  if (models.length === 0) {
+    return '';
+  }
+  return `
+    <div class="problems models">
+      ${models
+        .map(
+          (model) =>
+            `<div>${esc(model.note ?? '')} <span class="mono">${esc(model.ran ?? 'nothing recorded')} → expected ${esc(model.expected)}</span></div>`
+        )
+        .join('')}
     </div>`;
 }
 
@@ -167,7 +192,7 @@ function problemsNote(problems) {
     return '';
   }
   return `
-    <div class="problems">
+    <div class="problems unreadable">
       Some of the brief could not be read:
       <ul>${problems.map((problem) => `<li>${esc(problem)}</li>`).join('')}</ul>
     </div>`;
@@ -323,7 +348,7 @@ async function render() {
   }
 
   if (state?.error) {
-    page.innerHTML = `<div class="problems">${esc(state.error)}</div>`;
+    page.innerHTML = `<div class="problems failed">${esc(state.error)}</div>`;
     return;
   }
 
@@ -360,10 +385,11 @@ async function render() {
 
   page.innerHTML = `
     ${problemsNote(problems)}
+    ${modelNote(state.models ?? [])}
     ${overflowNote(dropped)}
     ${
       stale
-        ? `<div class="problems">This is ${esc(longDate(today.date))}'s brief. Today is ${esc(longDate(state.today))}.</div>`
+        ? `<div class="problems stale">This is ${esc(longDate(today.date))}'s brief. Today is ${esc(longDate(state.today))}.</div>`
         : ''
     }
 

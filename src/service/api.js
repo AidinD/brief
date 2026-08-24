@@ -9,6 +9,7 @@
  * will want that second client eventually; this is where it attaches.
  */
 
+import { checkProvenance } from '../domain/models.js';
 import { localDate } from '../domain/time.js';
 import { holdings } from './holdings.js';
 import { readInterests, removeInterest, searchable, setInterest, weakness } from './interests.js';
@@ -22,7 +23,16 @@ import { draftOutbound, readOutbound, sendable, setEntry } from './outbound.js';
 export function today(store, now) {
   const date = localDate(now);
   const { brief, dropped, problems, missing } = store.read(date, now);
-  return { brief, dropped, problems, missing, today: date };
+
+  // Checked here rather than in the renderer so the window and any other client
+  // reach the same verdict about the same brief.
+  const models = missing
+    ? []
+    : /** @type {const} */ (['fetch', 'judge'])
+        .map((job) => checkProvenance(brief.provenance?.[job], job))
+        .filter((result) => !result.ok);
+
+  return { brief, dropped, problems, missing, today: date, models };
 }
 
 /**

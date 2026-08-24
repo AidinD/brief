@@ -179,6 +179,7 @@ function writeBrief(date, extra = {}) {
     version: 1,
     date,
     generatedAt: Date.now(),
+    provenance: { fetch: 'claude-haiku-4-5-20251001', judge: 'claude-sonnet-5' },
     world: {
       needsYou: [
         {
@@ -312,6 +313,15 @@ try {
     }
   });
 
+  const modelWarning = await page.count('.problems.models');
+  check('a brief made by the right models says nothing about them', () => {
+    // The note is a warning, not a status readout. If it appears when nothing is
+    // wrong, it becomes furniture and stops being read when something is.
+    if (modelWarning !== 0) {
+      throw new Error('the model warning showed for a correctly-produced brief');
+    }
+  });
+
   const end = await page.text('.end-note');
   check('and the brief ends, visibly', () => {
     if (!/That is the brief/.test(end)) {
@@ -354,9 +364,9 @@ try {
   step('A brief from another day');
 
   writeBrief('2020-01-02');
-  await page.waitFor("document.querySelector('.problems') !== null", 'the stale warning');
+  await page.waitFor("document.querySelector('.problems.stale') !== null", 'the stale warning');
 
-  const stale = await page.text('.problems');
+  const stale = await page.text('.problems.stale');
   check('says so, and names the year, so it cannot be mistaken for this January', () => {
     if (!/2 January 2020/.test(stale)) {
       throw new Error(`expected the old date named in full, saw "${stale.slice(0, 200)}"`);
@@ -373,12 +383,9 @@ try {
       worthKnowing: []
     }
   });
-  await page.waitFor(
-    "!!document.querySelector('.problems') && /did not make it/.test(document.querySelector('.problems').textContent)",
-    'the overflow note'
-  );
+  await page.waitFor("document.querySelector('.problems.overflow') !== null", 'the overflow note');
 
-  const overflow = await page.text('.problems');
+  const overflow = await page.text('.problems.overflow');
   const shown = await page.count('.item');
   check('cuts it and says what was cut, rather than scrolling further', () => {
     if (shown !== 5) {

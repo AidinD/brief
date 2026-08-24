@@ -32,6 +32,7 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { noKeyMessage, readKey } from '../src/domain/key.js';
 import { requireDataDir, resolveJotDir } from '../src/domain/paths.js';
 import { holdings } from '../src/service/holdings.js';
 import { interestsPath, searchable } from '../src/service/interests.js';
@@ -168,15 +169,13 @@ if (dry) {
   process.exit(0);
 }
 
-const key = process.env.GEMINI_API_KEY ?? '';
-if (key.trim() === '') {
-  console.error(
-    'Set GEMINI_API_KEY. It is a free AI Studio key and is NOT the same thing as a\n' +
-      'Gemini subscription - a subscription gives no API access at all.\n' +
-      'https://aistudio.google.com/apikey'
-  );
+const found = readKey(dir);
+if (found === null) {
+  console.error(noKeyMessage(dir));
   process.exit(1);
 }
+const key = found.key;
+console.log(`Key from ${found.source}.`);
 
 /**
  * @param {string} model

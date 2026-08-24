@@ -8,7 +8,11 @@
 
 import { join } from 'node:path';
 
-import { holdings } from './holdings.js';
+// `holdings` is deliberately NOT imported here. This module builds a request
+// body, and the privacy line says anything that does must read `sendable()`,
+// never `holdings()`. The import sat here unused for a while, twenty-eight lines
+// above the request builder, which is a regression waiting for someone in a
+// hurry.
 import { interestsPath, searchable } from './interests.js';
 import { outboundPath, sendable } from './outbound.js';
 

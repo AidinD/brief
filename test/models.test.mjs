@@ -41,8 +41,10 @@ test('a matching family passes, dated snapshot and all', () => {
 test('the wrong tier is named, not merely flagged', () => {
   const result = checkProvenance('claude-opus-5', 'fetch')
   assert.equal(result.ok, false)
-  // "Wrong model" is not actionable. "Opus did the fetching" is.
-  assert.match(String(result.note), /opus did the fetch/i)
+  // "Wrong model" is not actionable. "Opus did the fetch" is - so the family
+  // and the job come back separately for the window to phrase.
+  assert.equal(result.short, 'opus')
+  assert.equal(result.job, 'fetch')
   assert.equal(result.ran, 'claude-opus-5')
   assert.match(result.expected, /haiku/)
 })
@@ -54,7 +56,7 @@ test('nothing recorded is a failure, not a pass', () => {
     const result = checkProvenance(missing, 'judge')
     assert.equal(result.ok, false)
     assert.equal(result.ran, null)
-    assert.match(String(result.note), /no way to tell/)
+    assert.equal(result.short, null, 'nothing to name, so the window says so instead')
   }
 })
 
@@ -78,7 +80,8 @@ test('a brief fetched by the expensive model says so in the window', () => {
 
     const flagged = api.today(store, NOW).models
     assert.equal(flagged.length, 1)
-    assert.match(String(flagged[0].note), /opus did the fetch/i)
+    assert.equal(flagged[0].short, 'opus')
+    assert.equal(flagged[0].job, 'fetch')
   })
 })
 

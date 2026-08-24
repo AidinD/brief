@@ -1,6 +1,6 @@
 {
   "name": "brief",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "The morning surface: what the world did that you can act on, what your week was, and the few things that want confirming",
   "author": "Aidin",
   "license": "MIT",
@@ -21,7 +21,8 @@
     "release": "node scripts/release.mjs",
     "prepare": "git config core.hooksPath .githooks",
     "plan": "node scripts/plan.mjs",
-    "morning": "node scripts/plan.mjs --command"
+    "morning": "node scripts/morning.mjs",
+    "schedule": "node scripts/schedule.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

@@ -40,3 +40,5 @@ interests.json
 # The Gemini key. Never committed, and read rather than written.
 gemini.key
 *.key
+
+morning.log

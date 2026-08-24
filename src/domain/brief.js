@@ -57,6 +57,7 @@ export const LIMITS = {
  * @property {{ needsYou: WorldItem[], worthKnowing: WorldItem[] }} world
  * @property {{ summary: string, moments: { id: string, text: string, when?: string }[] }} week
  * @property {Candidate[]} confirm
+ * @property {{ fetch?: string, judge?: string }} [provenance] Which model produced which half.
  * @property {string[]} [notes] Anything the generator wants to say about itself.
  */
 
@@ -174,6 +175,13 @@ export function parseBrief(raw, fallbackDate, now) {
         .filter((moment) => moment.text !== '')
     },
     confirm,
+    // Kept exactly as written. A brief that records nothing must stay recording
+    // nothing, so the window can say "there is no way to tell" rather than
+    // inventing a reassuring default.
+    provenance: {
+      fetch: str(/** @type {any} */ (input.provenance)?.fetch) || undefined,
+      judge: str(/** @type {any} */ (input.provenance)?.judge) || undefined
+    },
     notes: list(input.notes).map(str).filter((note) => note !== '')
   };
 

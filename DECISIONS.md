@@ -3,6 +3,60 @@
 Newest first. Each entry: the date, what was decided, what else was considered,
 and why this won.
 
+## 2026-08-24 — One vendor, two models, and the check is on the artefact
+
+**Decided.** Gemini is gone. A Claude session does the whole world half, in two
+steps on two different models, and `brief.json` records which model actually ran.
+
+**What killed the Gemini half.** Search grounding on the Gemini API is
+**paid-tier only** — $35 per 1000 grounded prompts. It is free in AI Studio's web
+interface, which is where the earlier claim of "a few thousand free grounded
+prompts a month" came from, and it does not transfer to the API. Measured rather
+than argued: plain `generateContent` returned **200** and every call carrying
+`google_search` returned **429**, across four models. Without grounding a model
+answers about the last 48 hours from training data, which is worse than no answer
+because it is confidently stale.
+
+Two smaller findings from the same session, both worth keeping:
+
+- **A retired model still appears in the models listing.** `gemini-2.5-flash`
+  answered 404 with "no longer available to new users" while `/models` happily
+  listed it. Nothing short of a real call revealed it.
+- **Pin nothing by default.** The failure mode of a pinned model is that the
+  brief goes silent one morning for a reason unrelated to the brief. An alias
+  cannot go stale; the version can still be pinned when you want it pinned.
+
+**Why one vendor is better, not merely cheaper.** The thing that writes the brief
+was always going to be a Claude session — it reads Nib and Tend for the other two
+sections. Giving it the world half too removes a key, a billing relationship and
+a second privacy surface. The line in the previous entry ("Gemini for the world,
+Claude for your notes") existed to keep private notes away from an extra vendor;
+with no extra vendor it is satisfied trivially rather than carefully.
+
+**Two models, and the split is the point.** The fetch is volume work — read pages,
+extract what happened — and belongs on the cheap tier. Judgement and the Swedish
+prose are the product and belong on a good one. The expensive mistake is the
+easy one to make by accident, because a session inherits whatever model it was
+launched with, so the morning run is **two commands with explicit `--model`
+flags** rather than one session doing both.
+
+**Configuration is intent; provenance is fact.** A configured model tells you
+nothing about what ran — a flag can be lost, a default can move, and the output
+looks identical either way. So `brief.json` carries `provenance.fetch` and
+`provenance.judge`, the window warns when either is the wrong tier, and **absent
+provenance is a failure rather than a pass**. Same principle as everywhere else
+here: check the artefact, not the instruction that was supposed to produce it.
+
+The first brief written this way records `claude-opus-5` for both halves and the
+window says so, which is correct and is the mechanism working.
+
+**And a filter lesson.** That first brief led with a Roblox Creator Store deadline
+as "needs you". Aidin does not publish to Roblox and has no developer account, so
+it needed somebody else entirely. An interest in a platform is not evidence that
+you ship on it, and inferring a role produces the one failure that costs real
+trust. The fetch prompt now says so outright, and the fix at the data level is
+the `why` on an interest carrying the constraint.
+
 ## 2026-08-24 — The data directory is a real path, never `userData`
 
 **Decided.** `BRIEF_DATA_DIR` points at `D:\Dropbox\brief`, and the default

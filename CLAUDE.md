@@ -62,10 +62,37 @@ nothing, refusing rather than falling back. Anything that builds a request body
 reads `sendable()`, never `holdings()`. If you find yourself passing holdings
 into a fetch, that is the bug.
 
-**Gemini gets the world, Claude gets your notes.** Sections two and three are
-assembled from Nib notes and the Tend store, which holds assessments of named
-colleagues. That line will look like a cost optimisation to a session counting
-quota. It is not one. Do not move it.
+**There is no second vendor any more.** Gemini used to do the world half; search
+grounding on its API turned out to be paid-tier only, so a Claude session does
+all three sections. That removes the key, the billing and the second privacy
+surface. If you are ever tempted to add a vendor back for the world half, the
+line to keep is that Nib notes and the Tend store - which hold assessments of
+named colleagues - never go to one.
+
+## Two models, and provenance is how you know
+
+`src/domain/models.js` names the tier per job: the **fetch** is volume work and
+belongs on Haiku, the **judge** step writes the prose and belongs on Sonnet.
+Never Opus on the fetch; there is a test asserting that.
+
+The morning run is **two commands** (`npm run morning` prints them), not one
+session doing both, because a session inherits whatever model it was launched
+with and the expensive mistake is the accidental one.
+
+**A configured model is intent. Provenance is fact.** `brief.json` carries
+`provenance.fetch` and `provenance.judge`; the window warns when either is the
+wrong tier, and **absent provenance is a failure, not a pass** - "there is no way
+to tell" is the honest answer and must not read as compliant. Check the artefact,
+never the instruction that was supposed to produce it.
+
+## Never infer what the user does for a living
+
+An interest in a platform is not evidence that they ship on it. The first real
+brief led with a Roblox publishing deadline as "needs you"; Aidin has no
+developer account, so it needed somebody else. A wrong "needs you" costs more
+trust than a missed story, and the fetch prompt says so explicitly. When a
+constraint like that comes up, it belongs in the `why` on the interest, where the
+next fetch will read it.
 
 ## keel
 

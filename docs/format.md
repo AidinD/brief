@@ -33,6 +33,7 @@ window is watching, and a plain write is visible half-finished.
     "moments": [ { "id": "...", "when": "Monday", "text": "..." } ]
   },
   "confirm": [ { "id": "...", "kind": "decision", "text": "...", "why": "...", "evidence": "..." } ],
+  "provenance": { "fetch": "claude-haiku-4-5-20251001", "judge": "claude-sonnet-5" },
   "notes": ["Anything the generator wants to say about itself."]
 }
 ```
@@ -46,6 +47,7 @@ window is watching, and a plain write is visible half-finished.
 | `anchor` | no | What it attaches to: a Jot category, a duty, a person. Rendered as a small tag. |
 | `sources` | no | A source with no `url` is dropped; a link that goes nowhere is worse than no link. Only `http` and `https` open. |
 | `kind` | no | One of `decision`, `story`, `delegation`, `person`. Anything else is read as `decision` and reported. |
+| `provenance` | **yes in practice** | Which model produced each half. Absent counts as a failure and the window says so - see below. |
 
 Unknown fields are ignored. Missing sections read as empty. A file that is not
 valid JSON leaves the previous brief on screen and warns.
@@ -94,15 +96,32 @@ rewriting it would destroy the only evidence of what the generator suggested.
 Rejections are recorded too. A generator whose suggestions are always turned
 down has a bad filter, and there is no way to see that from the acceptances.
 
-## The world half, if you want Gemini to do it
+## The world half
 
-`npm run world` fetches candidate stories with Gemini and writes `world.json` -
-a pool, unsorted and unjudged. It is not a brief. Read it, decide what needs
-them versus what is worth knowing, write the prose, and write `brief.json`.
+`npm run plan` prints the assignment for the fetch step: the interests to search,
+the context to judge against, and the `world.json` shape to write. It calls
+nothing itself.
 
-Two things about it are worth knowing before you use it:
+`world.json` is a pool - unsorted, unjudged, in whatever language the sources
+were in. It is not a brief. The judge step reads it, decides what needs you
+versus what is worth knowing, writes the prose and writes `brief.json`.
 
-- It sends **only** what is in `outbound.json` with `send: true`. Not your
-  board. See `README.md`.
-- It is two API calls, because Gemini refuses a `responseSchema` alongside the
-  `google_search` tool. Search first, shape second.
+`npm run morning` prints both commands with their model flags.
+
+Two things about it are worth knowing before you write a generator:
+
+- The fetch sends **only** the interests and whatever is ticked in
+  `outbound.json`. Not your board. See `README.md`.
+- Record `provenance`. A brief that does not say which model produced it is
+  treated as a failure, not as a pass.
+
+## `provenance`
+
+```json
+"provenance": { "fetch": "claude-haiku-4-5-20251001", "judge": "claude-sonnet-5" }
+```
+
+The fetch step records itself in `world.json`; the judge step copies that across
+and adds its own. The window warns when either is the wrong tier for its job,
+and warns when there is nothing recorded at all - a configured model says nothing
+about what actually ran.

@@ -78,9 +78,8 @@ better news.
 So the derivation stays local and the **sending is opt-in, item by item**:
 
 ```bash
-npm run world -- --review    # writes outbound.json, everything switched off
-npm run world -- --dry       # prints exactly what would be sent
-npm run world                # actually fetches
+npm run plan -- --review   # writes outbound.json, everything switched off
+npm run plan               # prints exactly what the fetch will be asked, verbatim
 ```
 
 Nothing without `send: true` reaches a request body, and an empty list makes the
@@ -89,22 +88,32 @@ neutral description instead of the name itself — `Kestrel` goes out as
 `AI-assisted content pipelines`, the search is as good, and the codename stays
 here.
 
-## Two models, and the line between them
+## Two models, and how you know which one ran
 
-The world half runs on **Gemini**: reading a lot of source text is the cheap,
-high-volume part, and the AI Studio free tier covers a brief a day many times
-over. Judgement — needs-you versus worth-knowing — and the prose stay with
-**Claude**.
+One vendor. A Claude session writes all three sections — the world half used to
+run on Gemini, until search grounding on its API turned out to be paid-tier only
+($35 per 1000 grounded prompts; free in AI Studio's web interface, not through
+the API). No key, no billing, one fewer privacy surface.
 
-The line is not about cost. Sections two and three are assembled from Nib notes
-and the Tend store, and those contain assessments of named colleagues. Sending
-them to another vendor is a decision about other people's privacy, not a token
-optimisation. See [DECISIONS.md](DECISIONS.md), and do not move it to save
-quota.
+Two **models** though, because the halves are not the same size:
 
-`GEMINI_API_KEY` is a free [AI Studio](https://aistudio.google.com/apikey) key.
-It is **not** a Gemini subscription — a subscription gives no API access at all;
-they are separate products.
+| Step | Model | Why |
+| --- | --- | --- |
+| fetch | Haiku | Reading pages and extracting what happened is volume work. |
+| judge | Sonnet | Needs-you versus worth-knowing, and the prose. This is the product. |
+
+```bash
+npm run morning    # prints the two commands, with the model flags
+```
+
+Two commands rather than one session doing both, because a session inherits
+whatever model it was launched with and putting the big model on the fetch is
+the mistake that happens by accident.
+
+**A configured model is intent; provenance is fact.** `brief.json` records which
+model produced each half, the window warns when either is the wrong tier, and a
+brief that records nothing counts as a failure — "there is no way to tell" is the
+honest answer and should not look like compliance.
 
 ## Development
 

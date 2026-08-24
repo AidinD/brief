@@ -389,6 +389,44 @@ try {
     }
   });
 
+  /* --------------------------------------------------------- scrolling -- */
+
+  step('Scrolling');
+
+  // Put a full brief back, so there is genuinely more than one screen of it.
+  writeBrief(todayLocal());
+  await page.waitFor("document.querySelectorAll('.candidate').length === 2", 'the full brief again');
+
+  // The header is the window's only drag handle and carries its only close
+  // button. It scrolled away with the page once, which loses control of the
+  // window - so the scroller is the main element and the body must never grow.
+  const scrolled = JSON.parse(
+    String(
+      await page.evaluate(`(() => {
+        const box = document.querySelector('.scroll');
+        box.scrollTop = box.scrollHeight;
+        const header = document.querySelector('.app-header').getBoundingClientRect();
+        return JSON.stringify({
+          headerTop: Math.round(header.top),
+          bodyOverflows: document.body.scrollHeight > document.body.clientHeight + 1,
+          boxScrolled: box.scrollTop > 0
+        });
+      })()`)
+    )
+  );
+
+  check('the page scrolls inside the window, and the header stays put', () => {
+    if (!scrolled.boxScrolled) {
+      throw new Error('the brief was not long enough to scroll, so this proved nothing');
+    }
+    if (scrolled.headerTop !== 0) {
+      throw new Error(`the header moved to ${scrolled.headerTop}px - it scrolled with the page`);
+    }
+    if (scrolled.bodyOverflows) {
+      throw new Error('the body itself overflows, which is what takes the header with it');
+    }
+  });
+
   /* --------------------------------------------------- window chrome -- */
 
   step('The title bar buttons');

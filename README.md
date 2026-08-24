@@ -48,7 +48,7 @@ against — the same shape that made Jot useful to agents in the first place.
 **Put the data directory on a real path**, not the default `userData` one:
 
 ```bash
-setx BRIEF_DATA_DIR "D:\Dropboxrief"
+setx BRIEF_DATA_DIR "D:\Dropbox\brief"
 ```
 
 Partly for laptop-to-desktop syncing, but mainly because an agent session runs

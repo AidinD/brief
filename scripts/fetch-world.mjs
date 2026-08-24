@@ -34,6 +34,7 @@ import { join } from 'node:path';
 
 import { requireDataDir, resolveJotDir } from '../src/domain/paths.js';
 import { holdings } from '../src/service/holdings.js';
+import { interestsPath, searchable } from '../src/service/interests.js';
 import { draftOutbound, outboundPath, sendable } from '../src/service/outbound.js';
 
 const HOST = 'https://generativelanguage.googleapis.com/v1beta/models';
@@ -53,22 +54,46 @@ if (review) {
   process.exit(0);
 }
 
+/*
+ * Two lists, two jobs.
+ *
+ * `interests` are what gets searched for - standing topics you wrote down. They
+ * are the query, because a board never says "Unity" or "how engineering
+ * organisations are run" and those are exactly the things worth watching.
+ *
+ * `held` are what makes a hit matter to you specifically, and they are a poor
+ * query on their own: "Household" is a filing label, and posting those two words
+ * to a search engine returns nothing. As context they are excellent - "Roblox
+ * changed its payout model" is a topic hit, and "Meteor Run is on your board"
+ * is what turns it into something that needs you today.
+ */
+const wanted = searchable(dir);
 const held = sendable(dir);
 
-if (held.length === 0) {
+if (wanted.length === 0) {
   console.error(
-    `Nothing is cleared to send.\n\n` +
-      `Brief knows what you are holding - it reads your Jot board - but that list is\n` +
-      `not safe to post to a search API. It carries internal project names, and on the\n` +
-      `private side it carries things like what you are reading and where you have\n` +
-      `applied. So the send list is separate and opt-in:\n\n` +
+    `No interests to search for.\n\n` +
+      `Brief searches for standing topics you have written down - Unity, how\n` +
+      `engineering organisations are run, whatever you actually watch. It cannot\n` +
+      `derive those: your Jot board says what you are working on this week, never\n` +
+      `what you care about in general.\n\n` +
+      `Add them under "Sending" in the window, or write ${interestsPath(dir)}.\n\n` +
+      `The board is still used - as context, to judge what needs you rather than\n` +
+      `merely being about the topic. That half is opt-in per item:\n\n` +
       `  node scripts/fetch-world.mjs --review\n\n` +
-      `writes ${outboundPath(dir)} with everything switched off. Tick what you mean.`
+      `writes ${outboundPath(dir)} with everything switched off.`
   );
   process.exit(1);
 }
 
-const heldText = held.map((h) => `- ${h.label} [${h.kind}]`).join('\n');
+const wantedText = wanted
+  .map((w) => `- ${w.term}${w.why ? `\n    why this person cares: ${w.why}` : ''}`)
+  .join('\n');
+
+const heldText =
+  held.length === 0
+    ? '(nothing - judge relevance from the interests alone)'
+    : held.map((h) => `- ${h.label} [${h.kind}]`).join('\n');
 
 /**
  * The grounded call.
@@ -81,19 +106,24 @@ const heldText = held.map((h) => `- ${h.label} [${h.kind}]`).join('\n');
  */
 const searchPrompt = `You are assembling the raw material for one person's morning brief. Today is ${new Date().toISOString().slice(0, 10)}.
 
-Here is what that person is actually holding right now - the areas they are responsible for and the work in progress on their board:
+WHAT TO SEARCH FOR - their standing interests:
+
+${wantedText}
+
+WHAT MAKES A STORY MATTER TO THEM - what they are carrying right now:
 
 ${heldText}
 
-Search for news from the last 48 hours that touches any of these. Relevance means the story changes something about an item on that list: a decision they now have to make, a number in a plan, a risk, a deadline, a competitor doing the thing they were about to do.
+Search for news from the last 48 hours on the interests above.
 
-Rules:
-- Relevance is against a specific item on the list. If you cannot name which one and why, leave the story out.
-- Do not include a story because it is in the same industry, or because it is important in general. "Technology" and "politics" are not on the list; the items above are.
-- Prefer primary sources - the regulator, the company, the standards body - over coverage of them.
-- Between five and twelve stories. Fewer is fine. None is fine.
+How to judge each story:
+- It has to be a concrete change - something published, decided, priced, shipped, regulated, withdrawn. Not an opinion piece, not a think-piece, not a listicle. If the only thing that happened is that somebody wrote about a topic, leave it out.
+- Say which interest it answers. If you cannot, it does not belong in the brief.
+- If it also touches something they are carrying, say which one - that is what separates a story that needs them from one that is merely about a topic they follow.
+- Prefer primary sources - the company, the regulator, the standards body - over coverage of them.
+- Between three and twelve stories. Fewer is better than padded. None is a legitimate answer, and saying so is more useful than filling the space.
 
-For each story give: the headline in one plain sentence, two or three sentences on what actually happened, which item on the list it touches and why that item makes it matter, and the source URL.`;
+For each story give: the headline in one plain sentence, two or three sentences on what actually happened, which interest it answers, whether it touches anything they are carrying and how, and the source URL.`;
 
 /** The shaping call. No tools, so a schema is allowed. */
 const SCHEMA = {
@@ -106,7 +136,11 @@ const SCHEMA = {
         properties: {
           headline: { type: 'string' },
           summary: { type: 'string' },
-          anchor: { type: 'string', description: 'The item on the holdings list this touches.' },
+          interest: { type: 'string', description: 'Which standing interest this story answers.' },
+          anchor: {
+            type: 'string',
+            description: 'What the person is carrying that this touches, if anything. Empty if nothing.'
+          },
           why: { type: 'string', description: 'Why that item makes this matter.' },
           sources: {
             type: 'array',
@@ -117,7 +151,7 @@ const SCHEMA = {
             }
           }
         },
-        required: ['headline', 'summary', 'anchor', 'why']
+        required: ['headline', 'summary', 'interest', 'why']
       }
     }
   },
@@ -126,7 +160,11 @@ const SCHEMA = {
 
 if (dry) {
   console.log(searchPrompt);
-  console.log(`\n--- this is the whole request body's text. ${held.length} cleared items. ---`);
+  console.log(
+    `\n--- this is the whole request body's text. ` +
+      `${wanted.length} interest${wanted.length === 1 ? '' : 's'}, ` +
+      `${held.length} cleared item${held.length === 1 ? '' : 's'} of context. ---`
+  );
   process.exit(0);
 }
 
@@ -211,6 +249,9 @@ const parsed = JSON.parse(firstText(shaped));
 const out = {
   fetchedAt: Date.now(),
   model: MODEL,
+  // Kept so a bad batch can be audited: exactly what was searched for, and
+  // exactly what context went with it.
+  searched: wanted,
   sent: held,
   candidates: parsed.candidates ?? [],
   cited,

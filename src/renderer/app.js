@@ -98,15 +98,26 @@ function candidateRow(candidate, verdict) {
   const answers =
     verdict === undefined
       ? `<div class="answers">
-           <button class="yes" data-answer="accepted" data-id="${esc(candidate.id)}">Yes</button>
+           <button class="yes" data-answer="accepted" data-id="${esc(candidate.id)}">Keep it</button>
            <button data-answer="rejected" data-id="${esc(candidate.id)}">Not this</button>
          </div>`
       : `<div class="verdict">${verdict === 'accepted' ? 'kept' : 'dropped'}</div>`;
 
+  // The kind is colour-coded and carries a plain gloss of what keeping it does,
+  // because "decision" on its own does not say where it goes.
+  /** @type {Record<string, string>} */
+  const gloss = {
+    decision: 'a decision worth a permanent record',
+    story: 'a story worth having when you need one',
+    delegation: 'a handover worth checking in on',
+    person: 'someone worth a conversation'
+  };
+
   return `
-    <article class="candidate${verdict === undefined ? '' : ' answered'}">
+    <article class="candidate kind-${esc(candidate.kind)}${verdict === undefined ? '' : ' answered'}">
       <div class="candidate-body">
         <span class="kind">${esc(candidate.kind)}</span>
+        <span class="kind-gloss">${esc(gloss[candidate.kind] ?? '')}</span>
         <p class="candidate-text">${esc(candidate.text)}</p>
         ${candidate.why ? `<p class="candidate-why">${esc(candidate.why)}</p>` : ''}
         ${candidate.evidence ? `<p class="evidence">${esc(candidate.evidence)}</p>` : ''}
@@ -181,9 +192,10 @@ function problemsNote(problems) {
  *   label, and a control you have to mentally compile is one you will misread.
  */
 async function renderOutbound() {
-  const state = await brief.invoke('outbound');
+  const [state, topics] = await Promise.all([brief.invoke('outbound'), brief.invoke('interests')]);
   const entries = state?.entries ?? [];
   const sending = state?.sending ?? [];
+  const wanted = topics?.interests ?? [];
 
   dateline.textContent = '';
   dateline.className = 'dateline';
@@ -211,12 +223,48 @@ async function renderOutbound() {
       />
     </label>`;
 
+  const interestRow = (/** @type {any} */ item) => `
+    <div class="topic${item.send ? '' : ' off'}">
+      <div class="topic-head">
+        <input type="checkbox" data-topic-send="${esc(item.term)}"${item.send ? ' checked' : ''} title="Search for this" />
+        <span class="topic-term">${esc(item.term)}</span>
+        <button class="topic-remove" data-topic-remove="${esc(item.term)}" title="Remove">×</button>
+      </div>
+      <input
+        class="topic-why"
+        type="text"
+        placeholder="why you care — what change would you want to hear about?"
+        value="${esc(item.why ?? '')}"
+        data-topic-why="${esc(item.term)}"
+      />
+      ${item.advice ? `<p class="topic-advice">${esc(item.advice)}</p>` : ''}
+    </div>`;
+
   page.innerHTML = `
     <section class="section">
-      <h2 class="section-title">What may leave this machine</h2>
+      <p class="eyebrow">What Brief looks for</p>
+      <h2 class="section-heading">Interests</h2>
       <p class="section-note">
-        Brief works out what you are holding by reading your Jot board. None of it
-        is sent unless you tick it here.
+        Standing topics, written by you. These are the search - a board says what
+        you are working on this week, never what you follow in general. Because
+        you wrote them, they are sent by default.
+      </p>
+
+      <div class="topics">${wanted.map(interestRow).join('')}</div>
+
+      <form class="topic-add" id="topic-add">
+        <input type="text" name="term" placeholder="Unity, engineering ladders, EU AI Act…" autocomplete="off" />
+        <button type="submit">Add</button>
+      </form>
+    </section>
+
+    <section class="section">
+      <p class="eyebrow">What makes a story matter to you</p>
+      <h2 class="section-heading">From your board</h2>
+      <p class="section-note">
+        Context, not search terms. "Roblox changed its payout model" is a topic
+        hit; "and Meteor Run is on your board" is what makes it need you today.
+        Derived from Jot without asking, so nothing here is sent unless you tick it.
       </p>
       ${
         sending.length === 0
@@ -241,6 +289,11 @@ async function renderOutbound() {
         ([kind, rows]) => `
           <section class="section">
             <h2 class="section-title">${esc(kind)}</h2>
+            ${
+              kind === 'area'
+                ? `<p class="section-note">A category name is a filing label. Ticking "Household" sends those two words and nothing else, which a search engine can do nothing with - use the alias field, or leave these alone and rely on the tasks below.</p>`
+                : ''
+            }
             <div class="send-rows">${rows.map(row).join('')}</div>
           </section>`
       )
@@ -289,6 +342,22 @@ async function render() {
   const world = today.world;
   const worldEmpty = world.needsYou.length === 0 && world.worthKnowing.length === 0;
 
+  /*
+   * The masthead's heading is a sentence, not a count.
+   *
+   * It is the most useful line on the page - it says what kind of morning this
+   * is before you read anything - and phrasing it as prose is what keeps it from
+   * becoming the badge this app refuses to have. On a quiet day it says so, in
+   * as many words as a busy day gets.
+   */
+  const needs = world.needsYou.length;
+  const shape =
+    needs === 0
+      ? 'Nothing needs you today.'
+      : needs === 1
+        ? 'One thing needs you.'
+        : `${needs} things need you.`;
+
   page.innerHTML = `
     ${problemsNote(problems)}
     ${overflowNote(dropped)}
@@ -298,9 +367,15 @@ async function render() {
         : ''
     }
 
+    <header class="masthead">
+      <p class="eyebrow">${esc(longDate(today.date))}</p>
+      <h1 class="masthead-title">${esc(shape)}</h1>
+    </header>
+
     <section class="section">
-      <h2 class="section-title">The world</h2>
-      <p class="section-note">Filtered by what you are holding, not by topic.</p>
+      <p class="eyebrow">Needs you, then worth knowing</p>
+      <h2 class="section-heading">The world</h2>
+      <p class="section-note">Filtered by what you follow and what you are carrying, not by topic words.</p>
       ${
         worldEmpty
           ? '<p class="quiet">Nothing out there touched your work today.</p>'
@@ -319,7 +394,8 @@ async function render() {
     </section>
 
     <section class="section">
-      <h2 class="section-title">Your week</h2>
+      <p class="eyebrow">Written for you, not by you</p>
+      <h2 class="section-heading">Your week</h2>
       ${today.week.summary ? `<p class="week-summary">${esc(today.week.summary)}</p>` : ''}
       ${
         today.week.moments.length > 0
@@ -336,8 +412,9 @@ async function render() {
     </section>
 
     <section class="section">
-      <h2 class="section-title">Confirm this</h2>
-      <p class="section-note">Remembering, turned into reviewing. A few things, never a queue.</p>
+      <p class="eyebrow">Remembering, turned into reviewing</p>
+      <h2 class="section-heading">Confirm this</h2>
+      <p class="section-note">A few things, never a queue. Keeping one writes it down for good; turning one down is recorded too, so a bad filter shows up.</p>
       ${
         today.confirm.length > 0
           ? today.confirm
@@ -394,7 +471,30 @@ document.addEventListener('click', async (event) => {
   if (refresh instanceof HTMLElement) {
     await brief.invoke('refreshOutbound');
     await draw();
+    return;
   }
+
+  const remove = target.closest('[data-topic-remove]');
+  if (remove instanceof HTMLElement) {
+    await brief.invoke('removeInterest', { term: remove.dataset.topicRemove });
+    await draw();
+  }
+});
+
+// Adding an interest is a form, so Enter works without a keydown handler.
+document.addEventListener('submit', async (event) => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement) || form.id !== 'topic-add') {
+    return;
+  }
+  event.preventDefault();
+  const field = /** @type {HTMLInputElement} */ (form.elements.namedItem('term'));
+  const term = field.value.trim();
+  if (term === '') {
+    return;
+  }
+  await brief.invoke('setInterest', { term });
+  await draw();
 });
 
 /*
@@ -426,6 +526,18 @@ document.addEventListener('change', async (event) => {
       kind: target.dataset.kind,
       as: target.value
     });
+    await draw();
+    return;
+  }
+
+  if (target.dataset.topicSend !== undefined) {
+    await brief.invoke('setInterest', { term: target.dataset.topicSend, send: target.checked });
+    await draw();
+    return;
+  }
+
+  if (target.dataset.topicWhy !== undefined) {
+    await brief.invoke('setInterest', { term: target.dataset.topicWhy, why: target.value });
     await draw();
   }
 });

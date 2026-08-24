@@ -26,7 +26,7 @@ function scratch(body) {
 const BOARD = {
   categories: [
     { id: 'c1', name: 'Northwind', domain: 'work' },
-    { id: 'c2', name: 'Privat', domain: 'private' }
+    { id: 'c2', name: 'Household', domain: 'private' }
   ],
   todos: [
     { id: 't1', text: 'Ship the payout change', status: 'in-progress', categoryId: 'c1' },
@@ -41,9 +41,9 @@ test('holdings come from the board: areas, then what is actually moving', () => 
     const held = fromJot(dir)
     assert.deepEqual(held, [
       { kind: 'area', label: 'Northwind' },
-      { kind: 'area', label: 'Privat' },
+      { kind: 'area', label: 'Household' },
       { kind: 'in progress', label: 'Ship the payout change', detail: 'Northwind' },
-      { kind: 'in progress', label: 'Finish the loft shelves', detail: 'Privat' }
+      { kind: 'in progress', label: 'Finish the loft shelves', detail: 'Household' }
     ])
   })
 })

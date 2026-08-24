@@ -316,7 +316,7 @@ async function renderOutbound() {
             <h2 class="section-title">${esc(kind)}</h2>
             ${
               kind === 'area'
-                ? `<p class="section-note">A category name is a filing label. Ticking "Household" sends those two words and nothing else, which a search engine can do nothing with - use the alias field, or leave these alone and rely on the tasks below.</p>`
+                ? `<p class="section-note">A category name is a filing label. Ticking a category called "Household" sends that one word and nothing else, which a search engine can do nothing with - use the alias field, or leave these alone and rely on the tasks below.</p>`
                 : ''
             }
             <div class="send-rows">${rows.map(row).join('')}</div>

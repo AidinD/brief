@@ -57,7 +57,12 @@ if (command) {
   console.log(`claude --model ${MODELS.judge.id} -p "Read ${join(dir, 'world.json')}, judge`);
   console.log(`  each candidate as needs-you or worth-knowing, write the prose in Swedish,`);
   console.log(`  and write ${join(dir, 'brief.json')} per docs/format.md. Record`);
-  console.log(`  provenance.fetch from world.json and provenance.judge as the model you are."\n`);
+  console.log(`  provenance.fetch from world.json and provenance.judge as the model you are.`);
+  console.log(`  For the confirm section, read the three rules in docs/format.md first: it`);
+  console.log(`  must be about the reader and not about you, a decision already in a repo's`);
+  console.log(`  DECISIONS.md is not a candidate, and generate from what lacks a record`);
+  console.log(`  rather than from what was written recently. Check`);
+  console.log(`  ${join(dir, 'confirmed.jsonl')} - what was rejected before is a filter."\n`);
   console.log(`# Whether that worked is checked on the brief, not on this command:`);
   console.log(`# brief.json carries provenance, and the window says so if it disagrees.`);
   process.exit(0);

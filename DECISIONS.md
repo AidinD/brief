@@ -3,6 +3,52 @@
 Newest first. Each entry: the date, what was decided, what else was considered,
 and why this won.
 
+## 2026-08-25 - Market levels get in. Predictions do not.
+
+**Decided.** Brief reports published market figures - a sentiment gauge, a
+commodity at a multi-month extreme, a large move over a stated window - and is
+forbidden from carrying any view about where they are going.
+
+**What was asked for.** Whether Brief could "predict" world news in a way that
+helps with investing: a nudge when tensions rise so oil is worth a look, or when
+crypto sentiment turns.
+
+**Why the prediction half is refused.** No model forecasts markets, and a tool
+that appears to would be worse than nothing here: it reads as confident exactly
+when it is wrong, and real money is on the other side of it. The line runs
+through the middle of the request itself. "Tensions between the US and Iran rose"
+is observable. "So look at oil" is the conclusion, and it belongs to the reader.
+
+**What that means concretely.** The fetch prompt now names forecasts, price
+targets, analyst ratings and buy/sell recommendations as excluded, and requires a
+level to arrive as a number with its unit, window and comparison point - "Gold
+2,480 USD, highest close since April 2024" rather than "gold is rallying". A
+geopolitical event goes in as the event, never paired with a price conclusion.
+`test/assignment.test.mjs` asserts each of those against the built prompt, so a
+future rewrite of the surrounding prose cannot quietly drop them.
+
+**Standing gauges are the one exception to the 48-hour rule.** Everything else in
+the brief has to be a change from the last two days. A gauge is a state, not an
+event, so that rule silently dropped it on every ordinary day - which is why the
+Fear & Greed interest was in the list and producing nothing. An interest that
+names a gauge now gets today's value whatever it reads, because "normal" is an
+answer to "how does it look".
+
+**Always worthKnowing, never needsYou.** A number asks for judgement, not for
+action today. Brief's existing rule is that a wrong "needs you" costs more trust
+than a missed story; a market figure there would be the app telling somebody to
+trade, which is a different and worse failure.
+
+**The portfolio stays out.** The scan is of the market at large, deliberately not
+tied to holdings. That was the user's own framing and it is also what keeps the
+privacy line intact: holdings live in Jot and Börslabbet, `sendable()` decides
+what may leave, and a portfolio is not on that list. A version of this feature
+that personalised on holdings would have to send them somewhere.
+
+**Alternative rejected - scoring or ranking the signals.** A "conviction" number
+or a sorted list of what looks most interesting is a recommendation wearing a
+statistic's clothes. The figures are reported flat, and the reader ranks them.
+
 ## 2026-08-24 - The mark is a cup, because the old one was furniture
 
 **Decided.** Brief's mark is a cup: a tapered body and a handle, one stroke

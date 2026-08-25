@@ -408,6 +408,32 @@ try {
     }
   });
 
+  // The warning is the one place a fetch button belongs. Everywhere else a
+  // button that fetches is the first step towards a feed - but a window showing
+  // yesterday's brief has already failed at its one job, and the fix should not
+  // be a command typed in another window. It only exists while the warning does.
+  const staleButton = await page.evaluate(
+    "(() => { const b = document.querySelector('.problems.stale [data-make]'); return b === null ? null : b.textContent.trim(); })()"
+  );
+  check('carries a button to fetch today, right there in the warning', () => {
+    if (staleButton === null) {
+      throw new Error('no [data-make] button inside the stale warning');
+    }
+    if (!/today/i.test(staleButton)) {
+      throw new Error(`the button should say what it fetches, saw "${staleButton}"`);
+    }
+  });
+
+  writeBrief(todayLocal());
+  await page.waitFor("document.querySelector('.problems.stale') === null", 'the warning to clear');
+
+  const buttonWhenFresh = await page.count('.problems.stale [data-make]');
+  check('and the button is gone once the brief is current, not merely disabled', () => {
+    if (buttonWhenFresh !== 0) {
+      throw new Error(`expected no fetch button on a fresh brief, saw ${buttonWhenFresh}`);
+    }
+  });
+
   /* -------------------------------------------------------- overflow -- */
 
   step('A brief that is over its limit');

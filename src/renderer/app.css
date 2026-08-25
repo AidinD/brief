@@ -825,6 +825,42 @@ button {
 }
 
 /*
+ * The stale warning is the one place a button belongs.
+ *
+ * There is deliberately no refresh button anywhere else - a button that fetches
+ * is the first step towards a feed, and a brief has a bottom. But when the
+ * window is showing yesterday's brief it has already failed at its one job, and
+ * the answer to "this is not today's" should be within reach rather than a
+ * command in another window.
+ */
+.problems.stale {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/*
+ * Borrows the warning's own colour rather than the accent, so it reads as part
+ * of the sentence it sits beside instead of competing with it.
+ */
+.make.inline {
+  flex: none;
+  margin-top: 0;
+  padding: 5px 12px;
+  border-color: rgba(217, 164, 65, 0.45);
+  background: rgba(217, 164, 65, 0.12);
+  color: var(--warn);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.make.inline:hover {
+  background: rgba(217, 164, 65, 0.22);
+  color: var(--warn);
+}
+
+/*
  * One fact per line, with the ids pushed to the right where they do not crowd it.
  *
  * `:not(.model-remedy)` is load-bearing: without it the remedy sentence became a

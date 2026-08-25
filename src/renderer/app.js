@@ -469,7 +469,10 @@ async function render() {
     ${overflowNote(dropped)}
     ${
       stale
-        ? `<div class="problems stale">This is ${esc(longDate(today.date))}'s brief. Today is ${esc(longDate(state.today))}.</div>`
+        ? `<div class="problems stale">
+             <span>This is ${esc(longDate(today.date))}'s brief. Today is ${esc(longDate(state.today))}.</span>
+             <button class="make inline" data-make="1">Get today's</button>
+           </div>`
         : ''
     }
 

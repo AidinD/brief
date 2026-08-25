@@ -54,6 +54,43 @@ const TOOLS = {
   judge: ['Read', 'Write']
 };
 
+/*
+ * How long one stage may take before it is abandoned.
+ *
+ * A healthy fetch takes about three minutes. Twelve is generous enough that a
+ * slow morning still finishes, and short enough that BOTH stages can time out
+ * and still leave the scheduled task room to log the failure - Windows kills it
+ * at thirty minutes and reports only an error code.
+ */
+const MINUTES_PER_STAGE = 12;
+
+/**
+ * Kill a process and everything it started.
+ *
+ * `child.kill()` signals one process. `claude` spawns its own node processes, so
+ * on Windows the tree outlives the signal, the pipes stay open, and the `close`
+ * event never arrives. taskkill /T is what actually ends it.
+ *
+ * Best-effort by design: this runs when something has already gone wrong, and
+ * failing to kill must not also throw.
+ *
+ * @param {number | undefined} pid
+ */
+function killTree(pid) {
+  if (pid === undefined) {
+    return;
+  }
+  try {
+    if (process.platform === 'win32') {
+      spawn('taskkill', ['/pid', String(pid), '/T', '/F'], { stdio: 'ignore' });
+    } else {
+      process.kill(-pid, 'SIGKILL');
+    }
+  } catch {
+    // Already gone, or not ours to kill. Either way there is nothing to do.
+  }
+}
+
 /**
  * Run one session, resolving to whether it exited cleanly.
  *
@@ -82,10 +119,44 @@ function session(model, tools, prompt, cwd, report, stage) {
     child.stdout?.on('data', keep);
     child.stderr?.on('data', keep);
 
-    const timer = setTimeout(() => child.kill(), 15 * 60 * 1000);
+    /*
+     * Giving up has to be the thing that resolves, not a kill we hope works.
+     *
+     * The old version called `child.kill()` and then waited for `close`. On
+     * 2026-08-25 the fetch hung, and the log ends mid-run: "fetch: starting" and
+     * then nothing at all, until Windows killed the scheduled task half an hour
+     * later. Two reasons it stayed silent:
+     *
+     *  - `kill()` signals the direct child only. `claude` spawns its own node
+     *    processes, so the tree survives, the pipes stay open, and `close` never
+     *    fires.
+     *  - Even when it does fire, nothing had reported the timeout, so a hung run
+     *    looked identical to no run at all.
+     *
+     * So: resolve on the timeout itself, say so in the report, and kill the
+     * whole tree rather than one process.
+     */
+    let settled = false;
+    const finish = (/** @type {any} */ result) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(timer);
+      resolve(result);
+    };
+
+    const timer = setTimeout(
+      () => {
+        const reason = `gave up after ${MINUTES_PER_STAGE} minutes without finishing`;
+        report(stage, `failed: ${reason}`);
+        killTree(child.pid);
+        finish({ ok: false, reason, tail });
+      },
+      MINUTES_PER_STAGE * 60 * 1000
+    );
 
     child.on('error', (err) => {
-      clearTimeout(timer);
       // The common one, and worth naming: the CLI is not on PATH for whatever
       // launched the app. "spawn claude ENOENT" tells nobody anything.
       const reason =
@@ -93,18 +164,17 @@ function session(model, tools, prompt, cwd, report, stage) {
           ? 'The `claude` command was not found. It has to be on PATH for whatever started Brief - which is not always true for an app launched from the Start menu.'
           : err.message;
       report(stage, `failed: ${reason}`);
-      resolve({ ok: false, reason, tail });
+      finish({ ok: false, reason, tail });
     });
 
     child.on('close', (code) => {
-      clearTimeout(timer);
       if (code === 0) {
-        resolve({ ok: true, tail });
+        finish({ ok: true, tail });
         return;
       }
       const reason = `exited ${code}${tail.trim() === '' ? '' : `: ${tail.trim().slice(-400)}`}`;
       report(stage, `failed: ${reason}`);
-      resolve({ ok: false, reason, tail });
+      finish({ ok: false, reason, tail });
     });
   });
 }

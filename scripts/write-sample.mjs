@@ -72,6 +72,20 @@ const brief = {
       }
     ]
   },
+  behind: [
+    {
+      id: 'b1',
+      headline: 'The producer feedback round has never been run for four of the people you carry',
+      why: 'The target is every 90 days. The oldest is 62 weeks past it, the youngest 48.',
+      anchor: 'Tend: feedback rounds'
+    },
+    {
+      id: 'b2',
+      headline: 'You have not spoken to six of nine people this month',
+      why: 'Contact is concentrated on the same three.',
+      anchor: 'Tend: attention'
+    }
+  ],
   week: {
     summary:
       'Four days on the suite and one on the board. The shared layer landed and two apps now depend on it, which is the first week that work paid for itself rather than costing.',
@@ -95,13 +109,6 @@ const brief = {
       text: 'Caught a data leak in a public repo, traced it to a harness that had been fixed a month earlier, and rewrote the history.',
       why: 'The point of the story is that fixing the bug was not the same as removing what it produced.',
       evidence: 'helm, 2026-08-23'
-    },
-    {
-      id: 'c3',
-      kind: 'person',
-      text: 'You have not had a real conversation with anyone outside your own team in three weeks.',
-      why: 'Tend flagged the pattern, not the person.',
-      evidence: 'Tend: cross-team contact cadence'
     }
   ],
   notes: ['Sample brief. Written by scripts/write-sample.mjs, not by a model.']

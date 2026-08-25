@@ -530,10 +530,85 @@ try {
     }
   });
 
-  /* ----------------------------------------------------- a dated source -- */
+  /* ---------------------------------------------------------- behind -- */
+
+  step('What you are behind on');
 
   await page.click('#view-toggle');
   await page.waitFor("document.querySelector('.end-note') !== null", 'the brief again');
+
+  writeBrief(todayLocal(), {
+    behind: [
+      {
+        id: 'b1',
+        headline: 'Feedbackrundan har aldrig gjorts för fyra personer',
+        why: 'Målet är var 90:e dag. Äldsta är 62 veckor försenad.',
+        anchor: 'Tend: feedback rounds'
+      }
+    ]
+  });
+  await page.waitFor(
+    "Array.from(document.querySelectorAll('.section-heading')).some((h) => h.textContent.trim() === 'Behind')",
+    'the behind section'
+  );
+
+  const behindHeadings = await page.evaluate(
+    "JSON.stringify(Array.from(document.querySelectorAll('.section-heading')).map((h) => h.textContent.trim()))"
+  );
+  check('an overdue duty gets its own section, not a slot under "The world"', () => {
+    const order = JSON.parse(behindHeadings);
+    const behind = order.indexOf('Behind');
+    const world = order.indexOf('The world');
+    if (behind === -1) {
+      throw new Error(`no Behind heading, saw ${behindHeadings}`);
+    }
+    // A duty Tend is tracking did not come from the news, and rendering it under
+    // "The world" would be the same class of lie as announcing that a readable
+    // brief could not be read.
+    if (behind > world) {
+      throw new Error(`Behind should come before The world, saw ${behindHeadings}`);
+    }
+  });
+
+  const mastheadWithBehind = await page.text('.masthead-title');
+  check('and it counts towards the sentence, because it does need you', () => {
+    // One world item plus one overdue duty.
+    if (!/^2 things need you/.test(mastheadWithBehind)) {
+      throw new Error(`expected the duty counted, saw "${mastheadWithBehind}"`);
+    }
+  });
+
+  const behindAnswers = await page.count('.section.behind [data-answer]');
+  const behindItems = await page.count('.section.behind .item');
+  check('what you owe carries no keep-or-reject buttons, because neither answer is true', () => {
+    // The bug this section exists to fix: Tend's overdue list arrived in the
+    // confirm section, where keeping files a status that is stale within the
+    // month and rejecting says it does not matter, when it does.
+    if (behindItems !== 1) {
+      throw new Error(`expected the duty rendered, saw ${behindItems} items`);
+    }
+    if (behindAnswers !== 0) {
+      throw new Error(`the duty offered ${behindAnswers} answers it cannot honour`);
+    }
+  });
+
+  writeBrief(todayLocal());
+  await page.waitFor("document.querySelector('.section.behind') === null", 'the section to disappear');
+
+  const caughtUp = await page.text('.masthead-title');
+  const behindWhenCaughtUp = await page.count('.section.behind');
+  check('and the section is absent, not empty, on a morning you are caught up', () => {
+    // An empty "Behind" heading standing there every day is a badge with extra
+    // steps, and this app does not have badges.
+    if (behindWhenCaughtUp !== 0) {
+      throw new Error('an empty behind section was left on the page');
+    }
+    if (!/^One thing needs you/.test(caughtUp)) {
+      throw new Error(`the count should drop back with it, saw "${caughtUp}"`);
+    }
+  });
+
+  /* ----------------------------------------------------- a dated source -- */
 
   writeBrief(todayLocal(), {
     world: {

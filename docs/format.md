@@ -28,6 +28,7 @@ window is watching, and a plain write is visible half-finished.
     "needsYou": [ { "id": "...", "headline": "...", "why": "...", "anchor": "...", "sources": [ { "title": "...", "url": "https://..." } ] } ],
     "worthKnowing": [ "...same shape..." ]
   },
+  "behind": [ { "id": "...", "headline": "...", "why": "...", "anchor": "..." } ],
   "week": {
     "summary": "One paragraph.",
     "moments": [ { "id": "...", "when": "Monday", "text": "..." } ]
@@ -46,7 +47,7 @@ window is watching, and a plain write is visible half-finished.
 | `why` | no | Why it reaches *this* person. This is the part that is worth writing well. |
 | `anchor` | no | What it attaches to: a Jot category, a duty, a person. Rendered as a small tag. |
 | `sources` | no | A source with no `url` is dropped; a link that goes nowhere is worse than no link. Only `http` and `https` open. |
-| `kind` | no | One of `decision`, `story`, `delegation`, `person`. Anything else is read as `decision` and reported. |
+| `kind` | no | One of `decision`, `story`, `delegation`, `person`. Anything else is read as `decision` and reported. In practice write only the first two - the other two are what `behind` is for, and are still parsed so that an older brief still renders. |
 | `provenance` | **yes in practice** | Which model produced each half. Absent counts as a failure and the window says so - see below. |
 
 Unknown fields are ignored. Missing sections read as empty. A file that is not
@@ -58,6 +59,7 @@ valid JSON leaves the previous brief on screen and warns.
 | --- | --- |
 | `world.needsYou` | 5 |
 | `world.worthKnowing` | 7 |
+| `behind` | 3 |
 | `week.moments` | 6 |
 | `confirm` | 5 |
 
@@ -80,12 +82,31 @@ about to do. "Important in general" is `worthKnowing` at best.
 their work a story touches, it is a topic match, and topic matches are what
 makes a filter useless.
 
-**The confirm section is the point of the whole app.** Candidate decisions worth
-logging, candidate stories worth keeping, delegations that want checking in on,
-people who are drifting. Few, and specific.
+**`behind` is what you owe, and it carries no buttons.** Commitments past their
+interval and people who have gone unspoken to, taken from Tend, which is what
+tracks them. It renders as its own section above the world and counts towards the
+masthead sentence, because it needs you in exactly the sense that sentence means.
 
-Three rules for it, all three learned by getting four out of five wrong on the
-first real day:
+It exists because those items were arriving in `confirm`, where the only two
+answers are keep and reject and neither one is true of something you are behind
+on: keeping files a status that is stale within the month, and rejecting says it
+does not matter, when it does. The cap is three, the tightest in the app.
+Everything overdue at once is a backlog, and a backlog on a morning page is what
+this app exists not to be. Tend holds the rest and keeps counting.
+
+Same item shape as a world story, deliberately - a headline, why it reaches you,
+what it hangs off - because a second shape would only mean a second renderer.
+
+**The confirm section is the point of the whole app.** Candidate decisions worth
+logging and candidate stories worth keeping: things with nowhere else to live,
+where writing them down is the whole of what needs doing. Few, and specific.
+
+A delegation that wants checking in on and a person who is drifting used to be
+listed here too. They are `behind` now, for the reason above - the section can
+only offer keep or reject, and neither answers them.
+
+Four rules for it, the first three learned by getting four out of five wrong on
+the first real day:
 
 **It must be about the reader, not about you.** Three of those five were the
 assistant's own mistakes and reversals - a bug chased from the wrong side, a
@@ -94,7 +115,13 @@ first person. "My agent got confused for five hours" answers no question anybody
 will ever ask them, however good the lesson is. Put that lesson in `CLAUDE.md`
 and leave the brief alone.
 
-**A decision that already has a home is not a candidate.** Two of the five were
+**Every candidate must be answerable by keep or reject.** If the honest response
+is "yes, and now I have to go and do something", it is work rather than a
+candidate, and it belongs in `behind` or in the system that tracks it.
+
+**A decision that already has a home is not a candidate.** This is not only about
+repos: a duty in Tend and a task in Jot have homes too, and the copy here cannot
+be updated when the original moves. Two of the five were
 already in a repo's `DECISIONS.md`, in more detail, with the alternatives that
 lost. A second copy is worse than none, because copies drift. What belongs here
 is the decision with nowhere to live: an agreement between people, a thing the

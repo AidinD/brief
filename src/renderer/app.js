@@ -330,7 +330,13 @@ async function renderOutbound() {
     <div class="topic${item.send ? '' : ' off'}">
       <div class="topic-head">
         <input type="checkbox" data-topic-send="${esc(item.term)}"${item.send ? ' checked' : ''} title="Search for this" />
-        <span class="topic-term">${esc(item.term)}</span>
+        <input
+          class="topic-term"
+          type="text"
+          value="${esc(item.term)}"
+          data-topic-term="${esc(item.term)}"
+          title="The words that go to the search. Edit to reword it."
+        />
         <button class="topic-remove" data-topic-remove="${esc(item.term)}" title="Remove">×</button>
       </div>
       <input
@@ -684,6 +690,27 @@ document.addEventListener('change', async (event) => {
 
   if (target.dataset.topicWhy !== undefined) {
     await brief.invoke('setInterest', { term: target.dataset.topicWhy, why: target.value });
+    await draw();
+    return;
+  }
+
+  // Renaming is its own operation rather than a `setInterest` with a new term:
+  // that one creates when it finds no match, which would leave the old interest
+  // sitting beside the new one with the same `why`. A refusal comes back as a
+  // reason rather than an exception, and the field goes back to what it was -
+  // silently keeping a rejected edit on screen is how you think you renamed
+  // something that you did not.
+  if (target.dataset.topicTerm !== undefined) {
+    const from = target.dataset.topicTerm;
+    const to = target.value.trim();
+    if (to === from) {
+      return;
+    }
+    const result = await brief.invoke('renameInterest', { from, to });
+    if (result?.ok === false) {
+      target.value = from;
+      progress = { stage: 'interests', message: result.reason ?? 'that rename was refused' };
+    }
     await draw();
   }
 });

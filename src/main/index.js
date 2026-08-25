@@ -111,6 +111,7 @@ const OPERATIONS = {
   interests: () => api.interests({ dataDir: dir }),
   setInterest: (/** @type {any} */ a) => api.setInterestOp({ dataDir: dir }, a),
   removeInterest: (/** @type {any} */ a) => api.removeInterestOp({ dataDir: dir }, a),
+  renameInterest: (/** @type {any} */ a) => api.renameInterestOp({ dataDir: dir }, a),
 
   openDataDir: async () => {
     const problem = await shell.openPath(dir);

@@ -69,6 +69,28 @@ How to judge each story:
 - Prefer primary sources over coverage of them.
 - Three to twelve stories. Fewer is better than padded, and none is a legitimate answer.
 
+Standing gauges and market levels, where an interest asks for one:
+- A gauge that an interest asks for by name is reported EVERY day, whatever it
+  reads. "Normal" is an answer. This is the one exception to the 48-hour rule
+  above: a reading is a state, not an event, and a rule written for events would
+  drop it on every ordinary day.
+- A market level is a story only when it is genuinely notable, on the terms the
+  interest sets - a multi-month extreme, or a large move over a stated window.
+  Ordinary daily noise is not a story.
+- Report the NUMBER: the value, its unit or currency, the window, and what it is
+  being compared against. "Gold 2,480 USD, highest close since April 2024" is a
+  fact. "Gold is rallying" is not.
+- Cite whoever publishes the figure, not somebody commenting on it.
+- Never include a forecast, a price target, an analyst rating, a buy or sell
+  recommendation, or any sentence about where something is heading. If the only
+  content is somebody's opinion about a direction, it is not a story.
+- A geopolitical event that touches energy or commodities belongs here as the
+  EVENT - what was decided or what happened, and where. Never pair it with a
+  conclusion about what it does to a price; that inference is the reader's.
+- These are always "worth knowing", never "needs you". A number asks for
+  judgement, not for action today, and a market figure in the needs-you column
+  would be the app telling somebody to trade.
+
 world.json:
 {
   "fetchedAt": <epoch ms>,

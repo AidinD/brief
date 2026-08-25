@@ -94,6 +94,33 @@ trust than a missed story, and the fetch prompt says so explicitly. When a
 constraint like that comes up, it belongs in the `why` on the interest, where the
 next fetch will read it.
 
+## Brief reports numbers. It never says what to do with them.
+
+Aidin invests, and asked whether Brief could flag things like a sentiment index
+at an extreme or oil moving on Middle East news. It can, but only on one side of
+a line that is easy to erase.
+
+**A published figure is a fact. A direction is a guess.** "Fear & Greed 12,
+extreme fear, lowest since March" is reportable. "Sentiment is turning" is not,
+and neither is any forecast, price target, analyst rating, or buy/sell view. The
+fetch prompt bans them by name and `test/assignment.test.mjs` asserts the ban
+survives a rewrite. A geopolitical event goes in as the event; the inference
+about what it does to a price is the reader's, never the app's.
+
+**Market figures are always `worthKnowing`, never `needsYou`.** A number asks for
+judgement, not for action today. A market figure in the needs-you column is the
+app telling somebody to trade, which is exactly what it must not do.
+
+**A standing gauge is the one exception to the 48-hour rule.** A reading is a
+state, not an event, so a rule written for events drops it on every ordinary day.
+An interest that names a gauge gets today's value whatever it says, because
+"normal" is an answer.
+
+**The portfolio stays out of it.** The scan is of the market at large and is not
+tied to holdings. Holdings live in Jot and Börslabbet and are never the search
+filter, for the same reason the board is not: `sendable()` decides what leaves,
+and a portfolio is not on it.
+
 ## keel
 
 Brief depends on **keel** (`github.com/AidinD/keel`), linked as `file:../keel` -

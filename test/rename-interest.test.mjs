@@ -13,13 +13,15 @@ import { renameInterest, readInterests, setInterest } from '../src/service/inter
  * work, so the cost of a rename was the thing you least wanted to lose.
  */
 
+/** @param {{ term: string, why?: string, send?: boolean }[]} interests */
 function scratch(interests) {
   const dir = mkdtempSync(join(tmpdir(), 'brief-rename-'))
   writeFileSync(join(dir, 'interests.json'), JSON.stringify({ interests }, null, 2))
   return dir
 }
 
-const find = (dir, term) => readInterests(dir).find((i) => i.term === term)
+const find = (/** @type {string} */ dir, /** @type {string} */ term) =>
+  readInterests(dir).find((i) => i.term === term)
 
 test('a rename keeps the why and the send flag', () => {
   const dir = scratch([{ term: 'Unty', why: 'A typo I want to fix.', send: false }])

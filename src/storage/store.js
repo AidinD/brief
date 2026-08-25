@@ -44,7 +44,7 @@ export function openStore({ dataDir, onWarning = () => {} }) {
    */
   function read(today, now) {
     if (!existsSync(briefPath)) {
-      return { ...clamp(emptyBrief(today, now)), problems: [], missing: true };
+      return { ...clamp(emptyBrief(today, now)), problems: [], doubts: [], missing: true };
     }
 
     let raw;
@@ -53,14 +53,14 @@ export function openStore({ dataDir, onWarning = () => {} }) {
     } catch (err) {
       const message = `brief.json could not be read: ${err instanceof Error ? err.message : String(err)}`;
       onWarning(message);
-      return { ...clamp(emptyBrief(today, now)), problems: [message], missing: true };
+      return { ...clamp(emptyBrief(today, now)), problems: [message], doubts: [], missing: true };
     }
 
-    const { brief, problems } = parseBrief(raw, today, now);
+    const { brief, problems, doubts } = parseBrief(raw, today, now);
     for (const problem of problems) {
       onWarning(problem);
     }
-    return { ...clamp(brief), problems, missing: false };
+    return { ...clamp(brief), problems, doubts, missing: false };
   }
 
   /**

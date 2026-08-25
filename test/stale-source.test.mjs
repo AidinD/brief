@@ -77,11 +77,12 @@ test('parseBrief reports a stale source, and still keeps the story', () => {
     }
   }
 
-  const { brief, problems } = parseBrief(raw, '2026-08-25', NOW)
+  const { brief, problems, doubts } = parseBrief(raw, '2026-08-25', NOW)
 
   assert.equal(brief.world.worthKnowing.length, 1, 'the story is kept')
-  const complaint = problems.find((p) => /Spotify/.test(p))
-  assert.ok(complaint, `expected a problem naming the story, saw ${JSON.stringify(problems)}`)
+  assert.deepEqual(problems, [], 'a readable file raises no parse problem')
+  const complaint = doubts.find((p) => /Spotify/.test(p))
+  assert.ok(complaint, `expected a doubt naming the story, saw ${JSON.stringify(doubts)}`)
   assert.match(complaint, /155 days ago/)
   assert.match(complaint, /last 48 hours/)
 })
@@ -102,8 +103,9 @@ test('a fresh story raises nothing', () => {
       ]
     }
   }
-  const { problems } = parseBrief(raw, '2026-08-25', NOW)
+  const { problems, doubts } = parseBrief(raw, '2026-08-25', NOW)
   assert.deepEqual(problems, [])
+  assert.deepEqual(doubts, [])
 })
 
 test('the threshold leaves room for a source published last week', () => {
@@ -123,5 +125,5 @@ test('the threshold leaves room for a source published last week', () => {
       ]
     }
   }
-  assert.deepEqual(parseBrief(within, '2026-08-25', NOW).problems, [])
+  assert.deepEqual(parseBrief(within, '2026-08-25', NOW).doubts, [])
 })

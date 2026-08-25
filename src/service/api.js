@@ -24,7 +24,7 @@ import { draftOutbound, readOutbound, sendable, setEntry } from './outbound.js';
  */
 export function today(store, now) {
   const date = localDate(now);
-  const { brief, dropped, problems, missing } = store.read(date, now);
+  const { brief, dropped, problems, doubts, missing } = store.read(date, now);
 
   // Checked here rather than in the renderer so the window and any other client
   // reach the same verdict about the same brief.
@@ -34,7 +34,7 @@ export function today(store, now) {
         .map((job) => checkProvenance(brief.provenance?.[job], job))
         .filter((result) => !result.ok);
 
-  return { brief, dropped, problems, missing, today: date, models };
+  return { brief, dropped, problems, doubts, missing, today: date, models };
 }
 
 /**

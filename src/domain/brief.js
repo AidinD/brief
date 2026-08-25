@@ -155,10 +155,21 @@ const list = (value) => (Array.isArray(value) ? value : []);
  * @param {unknown} raw
  * @param {string} fallbackDate
  * @param {number} now
- * @returns {{ brief: Brief, problems: string[] }}
+ * @returns {{ brief: Brief, problems: string[], doubts: string[] }}
  */
 export function parseBrief(raw, fallbackDate, now) {
   const problems = [];
+
+  /*
+   * Kept apart from `problems` on purpose. A problem means the file could not be
+   * read - a missing headline, a broken shape. A doubt means it read perfectly
+   * and says something that does not hold up. Filing the second under the first
+   * made the window announce "Some of the brief could not be read" about a story
+   * it had read exactly right, which is a worse lie than the one it was
+   * reporting.
+   */
+  /** @type {string[]} */
+  const doubts = [];
   const input = raw !== null && typeof raw === 'object' ? /** @type {any} */ (raw) : {};
 
   if (raw !== null && typeof raw !== 'object') {
@@ -192,7 +203,7 @@ export function parseBrief(raw, fallbackDate, now) {
       // where a Spotify layoff round from 2023 arrived under a March link.
       const age = sourceAgeDays(story, now);
       if (age !== null && age > STALE_SOURCE_DAYS) {
-        problems.push(
+        doubts.push(
           `"${story.headline}" cites a source published ${age} days ago. The brief covers the last 48 hours; check the date before trusting it.`
         );
       }
@@ -257,7 +268,7 @@ export function parseBrief(raw, fallbackDate, now) {
     notes: list(input.notes).map(str).filter((note) => note !== '')
   };
 
-  return { brief, problems };
+  return { brief, problems, doubts };
 }
 
 /**

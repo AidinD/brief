@@ -123,6 +123,54 @@ export function setInterest(dataDir, change) {
  * @param {string} dataDir @param {string} term
  * @returns {Interest[]}
  */
+/**
+ * Change an interest's wording, keeping its `why` and its send flag.
+ *
+ * Renaming had to go through remove-then-add, which silently dropped both - so
+ * fixing a typo cost you the sentence that makes the interest work, and turned
+ * the send flag back to its default. The term is also the key everything else
+ * refers to, which is why this is its own operation rather than a field on
+ * `setInterest`: that one CREATES when it does not find a match, so a rename
+ * expressed there would quietly leave the old interest behind next to the new.
+ *
+ * A collision is refused rather than merged. Two interests folding into one
+ * loses whichever `why` was not kept, and the caller cannot tell it happened.
+ *
+ * @param {string} dataDir
+ * @param {string} from
+ * @param {string} to
+ * @returns {Interest[]}
+ */
+export function renameInterest(dataDir, from, to) {
+  const before = String(from ?? '').trim();
+  const after = String(to ?? '').trim();
+  if (after === '') {
+    throw new Error('An interest needs a term.');
+  }
+
+  const interests = readInterests(dataDir);
+  const existing = interests.find((item) => item.term.toLowerCase() === before.toLowerCase());
+  if (existing === undefined) {
+    throw new Error(`No interest called "${before}".`);
+  }
+
+  // Changing only the capitalisation is a rename, not a collision with itself.
+  const clash = interests.find(
+    (item) => item !== existing && item.term.toLowerCase() === after.toLowerCase()
+  );
+  if (clash !== undefined) {
+    throw new Error(`There is already an interest called "${clash.term}".`);
+  }
+
+  existing.term = after;
+  writeInterests(dataDir, interests);
+  return interests;
+}
+
+/**
+ * @param {string} dataDir @param {string} term
+ * @returns {Interest[]}
+ */
 export function removeInterest(dataDir, term) {
   const wanted = String(term ?? '').trim().toLowerCase();
   const interests = readInterests(dataDir).filter((item) => item.term.toLowerCase() !== wanted);

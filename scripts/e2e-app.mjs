@@ -225,6 +225,16 @@ writeFileSync(
   'utf8'
 );
 
+// One interest, so the interests list has a row to edit. Its `why` is set
+// because the rename check below exists to prove a rename does not lose it.
+writeFileSync(
+  join(scratch, 'interests.json'),
+  JSON.stringify({
+    interests: [{ term: 'Gold and other metals', why: 'A reason that must survive a rename.', send: true }]
+  }),
+  'utf8'
+);
+
 const devElectron =
   process.platform === 'win32'
     ? join(root, 'node_modules', 'electron', 'dist', 'electron.exe')
@@ -517,6 +527,49 @@ try {
     }
     if (/Northwind/.test(preview)) {
       throw new Error(`the real label leaked into the preview: "${preview}"`);
+    }
+  });
+
+  /* ------------------------------------------------------- interests -- */
+
+  // The wording of an interest IS the search, so it has to be editable in place.
+  // It used to be a static span, and the only way to reword one was to remove it
+  // and add it again - which threw away the `why` that makes it work.
+  const termIsField = await page.evaluate(
+    "(() => { const el = document.querySelector('.topic-term'); return el === null ? 'missing' : el.tagName; })()"
+  );
+  check('the interest wording is a field, not a label', () => {
+    if (termIsField !== 'INPUT') {
+      throw new Error(`expected an editable input, saw ${termIsField}`);
+    }
+  });
+
+  const renamed = await page.evaluate(`(() => {
+    const field = document.querySelector('.topic-term');
+    if (field === null) {
+      return 'no interest to rename';
+    }
+    const before = field.value;
+    field.value = before + ' (reworded)';
+    field.dispatchEvent(new Event('change', { bubbles: true }));
+    return before;
+  })()`);
+  await page.waitFor(
+    "Array.from(document.querySelectorAll('.topic-term')).some((el) => / \\(reworded\\)$/.test(el.value))",
+    'the rename to come back from disk'
+  );
+
+  const keptWhy = await page.evaluate(`(() => {
+    const field = Array.from(document.querySelectorAll('.topic-term')).find((el) => / \\(reworded\\)$/.test(el.value));
+    const row = field.closest('.topic');
+    return { why: row.querySelector('.topic-why').value, send: row.querySelector('input[type=checkbox]').checked };
+  })()`);
+  check('renaming keeps the why and the send flag, which remove-and-add did not', () => {
+    if (keptWhy.why.trim() === '') {
+      throw new Error(`the reason was lost in the rename (was renaming "${renamed}")`);
+    }
+    if (keptWhy.send !== true) {
+      throw new Error('the send flag was reset by the rename');
     }
   });
 

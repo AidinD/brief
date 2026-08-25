@@ -554,11 +554,32 @@ button {
   cursor: pointer;
 }
 
+/*
+ * The term is editable, and deliberately does not look like a text box until you
+ * reach for it. It is the heading of the row, and a field with a permanent
+ * border would make the list read as a form rather than as a list of topics.
+ */
 .topic-term {
   flex: 1;
   min-width: 0;
+  padding: 2px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  background: transparent;
+  color: inherit;
   font-size: 15px;
   font-weight: 600;
+  font-family: inherit;
+}
+
+.topic-term:hover {
+  border-color: var(--line);
+}
+
+.topic-term:focus {
+  border-color: var(--accent-deep);
+  background: var(--bg);
+  outline: none;
 }
 
 .topic-remove {

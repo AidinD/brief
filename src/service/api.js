@@ -14,7 +14,7 @@ import { join } from 'node:path';
 import { checkProvenance } from '../domain/models.js';
 import { localDate } from '../domain/time.js';
 import { holdings } from './holdings.js';
-import { readInterests, removeInterest, searchable, setInterest, weakness } from './interests.js';
+import { readInterests, removeInterest, renameInterest, searchable, setInterest, weakness } from './interests.js';
 import { keep } from './keep.js';
 import { draftOutbound, readOutbound, sendable, setEntry } from './outbound.js';
 
@@ -185,4 +185,24 @@ export function setInterestOp({ dataDir }, change) {
 export function removeInterestOp({ dataDir }, which) {
   removeInterest(dataDir, which.term);
   return { ok: true };
+}
+
+/**
+ * Rename an interest in place.
+ *
+ * Returns the refusal rather than throwing, because the caller is a text field:
+ * a rejected rename has to put the old wording back and say why, and an
+ * exception across the IPC boundary arrives without the sentence.
+ *
+ * @param {object} where
+ * @param {string} where.dataDir
+ * @param {{ from: string, to: string }} which
+ */
+export function renameInterestOp({ dataDir }, which) {
+  try {
+    renameInterest(dataDir, which.from, which.to);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, reason: error instanceof Error ? error.message : String(error) };
+  }
 }

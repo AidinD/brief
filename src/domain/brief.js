@@ -25,6 +25,7 @@
 export const LIMITS = {
   needsYou: 5,
   worthKnowing: 7,
+  behind: 3,
   confirm: 5,
   moments: 6
 };
@@ -55,6 +56,7 @@ export const LIMITS = {
  * @property {string} date `YYYY-MM-DD`, the day it is for.
  * @property {number} generatedAt
  * @property {{ needsYou: WorldItem[], worthKnowing: WorldItem[] }} world
+ * @property {WorldItem[]} behind Commitments past their interval, from Tend rather than the news.
  * @property {{ summary: string, moments: { id: string, text: string, when?: string }[] }} week
  * @property {Candidate[]} confirm
  * @property {{ fetch?: string, judge?: string }} [provenance] Which model produced which half.
@@ -75,6 +77,7 @@ export function emptyBrief(date, now) {
     date,
     generatedAt: now,
     world: { needsYou: [], worthKnowing: [] },
+    behind: [],
     week: { summary: '', moments: [] },
     confirm: [],
     notes: []
@@ -279,6 +282,10 @@ export function parseBrief(raw, fallbackDate, now) {
       needsYou: worldItems(list(world.needsYou), 'needsYou'),
       worthKnowing: worldItems(list(world.worthKnowing), 'worthKnowing')
     },
+    // Same shape as a world item, deliberately. What is owed reads exactly like
+    // a story that reaches you - a headline, why it reaches you, what it hangs
+    // off - and giving it a second shape would only mean a second renderer.
+    behind: worldItems(list(input.behind), 'behind'),
     week: {
       summary: str(week.summary).trim(),
       moments: list(week.moments)
@@ -336,6 +343,10 @@ export function clamp(brief) {
         needsYou: cut(brief.world.needsYou, LIMITS.needsYou, 'needs you'),
         worthKnowing: cut(brief.world.worthKnowing, LIMITS.worthKnowing, 'worth knowing')
       },
+      // The tightest cap in the app, and the one most worth having. Everything
+      // overdue at once is a backlog, and a backlog on a morning page is the
+      // exact thing this app exists not to be. Three, and the rest is Tend's.
+      behind: cut(brief.behind ?? [], LIMITS.behind, 'behind'),
       week: {
         ...brief.week,
         moments: cut(brief.week.moments, LIMITS.moments, 'your week')

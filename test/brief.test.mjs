@@ -118,3 +118,53 @@ test('relativeDay names today and yesterday and otherwise gets out of the way', 
   assert.equal(relativeDay('2026-08-22', noon), 'yesterday')
   assert.equal(relativeDay('2026-08-01', noon), '2026-08-01')
 })
+
+test('what you are behind on is capped tighter than anything else, and the drop is shown', () => {
+  /*
+   * The section exists because Tend's overdue list had been arriving in the
+   * confirm section, where the two answers on offer - keep it, not this - are
+   * both false of something you are behind on. Keeping files a status that is
+   * stale within the month; rejecting says it does not matter, when it does.
+   *
+   * The cap is the tightest in the app on purpose. Everything overdue at once is
+   * a backlog, and a backlog on a morning page is what this app exists not to be.
+   */
+  const brief = emptyBrief('2026-08-25', 0)
+  brief.behind = items(LIMITS.behind + 4, 'b')
+
+  const { brief: cut, dropped } = clamp(brief)
+
+  assert.equal(cut.behind.length, LIMITS.behind)
+  assert.deepEqual(dropped, [{ section: 'behind', count: 4 }])
+  assert.ok(LIMITS.behind < LIMITS.confirm, 'behind is the tightest cap')
+})
+
+test('a brief written before the behind section existed still reads', () => {
+  // Every brief already on disk lacks the field, and a morning that renders
+  // nothing because yesterday's file is a version behind is worse than the bug
+  // this section fixed.
+  const { brief } = parseBrief({ date: '2026-08-25', world: { needsYou: [], worthKnowing: [] } }, '2026-08-25', 0)
+  assert.deepEqual(brief.behind, [])
+  assert.deepEqual(clamp(brief).dropped, [])
+})
+
+test('behind carries the same shape as a world item, and drops a blank one the same way', () => {
+  const { brief, problems } = parseBrief(
+    {
+      date: '2026-08-25',
+      behind: [
+        { id: 'b1', headline: 'Feedbackrundan är 62 veckor försenad', why: 'Målet är var 90:e dag.', anchor: 'Tend: feedback rounds' },
+        { id: 'b2', why: 'no headline' }
+      ]
+    },
+    '2026-08-25',
+    0
+  )
+
+  assert.equal(brief.behind.length, 1)
+  assert.equal(brief.behind[0].anchor, 'Tend: feedback rounds')
+  assert.ok(
+    problems.some((p) => /behind/.test(p)),
+    `the drop should name the section, saw ${JSON.stringify(problems)}`
+  )
+})

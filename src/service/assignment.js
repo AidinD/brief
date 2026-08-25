@@ -136,6 +136,7 @@ Shape:
                        "sources": [{ "title": "...", "url": "https://..." }] }],
     "worthKnowing": [ ...same shape... ]
   },
+  "behind":  [{ "id": "...", "headline": "...", "why": "...", "anchor": "..." }],
   "week":    { "summary": "one paragraph", "moments": [{ "id": "...", "when": "Monday", "text": "..." }] },
   "confirm": [{ "id": "...", "kind": "decision|story|delegation|person", "text": "...",
                 "why": "...", "evidence": "..." }],
@@ -143,8 +144,8 @@ Shape:
 }
 
 Caps, enforced whether you respect them or not - over them, the extras are
-dropped and the window says so: needsYou 5, worthKnowing 7, moments 6, confirm 5.
-Fewer is better. A brief has a bottom; that is the product.
+dropped and the window says so: needsYou 5, worthKnowing 7, behind 3, moments 6,
+confirm 5. Fewer is better. A brief has a bottom; that is the product.
 
 The world section:
 - needs-you means something CHANGES for them - a decision to make, a number in a
@@ -153,6 +154,18 @@ The world section:
   evidence that they ship on it, and a "needs you" that needs somebody else costs
   more trust than a missed story.
 
+The behind section, which is where an overdue commitment goes:
+- A duty past its interval, or a person who has gone unspoken to, belongs HERE
+  and never in confirm. Confirm offers two answers, keep and reject, and neither
+  one is true of something you are behind on: keeping it files a status that is
+  stale within the month, and rejecting it says it does not matter when it does.
+- Take these from Tend, which is what tracks them. Say what is overdue, by how
+  much, and against what target. Anchor each one to the duty it belongs to.
+- At most three, and if more than three are overdue write ONE item that says how
+  many and points at Tend. Everything you are behind on, listed, is a backlog,
+  and a backlog on a morning page is the thing this app exists not to be.
+- Never put a world story here, however urgent. This section is what you owe.
+
 The week section: fill it from what actually happened if you can see it. Leave it
 empty rather than inventing it.
 
@@ -160,9 +173,14 @@ The confirm section, which is the point of the whole app. Three rules:
 - It must be about the reader, not about you. A story bank holds stories its
   owner can tell in the first person. Your own mistakes and reversals belong in a
   CLAUDE.md, not here, however good the lesson.
-- A decision already recorded in a repo's DECISIONS.md is not a candidate. A
-  second copy is worse than none, because copies drift. What belongs here is the
-  decision with nowhere to live.
+- Anything a system already holds and keeps holding is not a candidate. A repo's
+  DECISIONS.md is the obvious case, but so is a duty in Tend and a task in Jot: a
+  second copy is worse than none, because copies drift, and the copy here cannot
+  be updated when the original moves. What belongs here is the thing with nowhere
+  to live.
+- Every candidate must be ANSWERABLE by keep or reject. If the honest response is
+  "yes, and now I have to go and do something", it is work, not a candidate, and
+  it belongs in behind or in the system that tracks it.
 - Generate from what LACKS a record, not from what was written recently. Recency
   is not the same as needing to be kept.
 Read ${join(dataDir, 'confirmed.jsonl')} first: what was rejected before is a

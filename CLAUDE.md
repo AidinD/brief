@@ -1,7 +1,7 @@
 # Brief - project notes
 
-Brief is the morning surface: the world, your week, and the few things that want
-confirming. It sits **beside** Jot (`D:\Repo\Tools\jot`), Nib
+Brief is the morning surface: the world, what you are behind on, your week, and
+the few things that want confirming. It sits **beside** Jot (`D:\Repo\Tools\jot`), Nib
 (`D:\Repo\Tools\nib`) and Tend (`D:\Repo\Tools\tend`), not inside any of them.
 
 ## Read these first
@@ -143,6 +143,15 @@ assuming it is fine.
 
 **Brief renders, something else writes.** No scrapers, no scheduler, no network
 code in the app. If you are adding a fetch to `src/`, stop.
+
+**A section that offers an answer must be answerable.** The confirm section has
+exactly two answers, keep and reject, and everything in it has to be resolved by
+one of them. Tend's overdue duties arrived there on the first run that reached
+Tend, and neither answer was true: keeping files a status that is stale within
+the month, rejecting says it does not matter when it does. They live in `behind`
+now, which carries no buttons because there is nothing to answer. If you are
+adding something to `confirm` and the honest response is "yes, and now I have to
+go and do something", it belongs somewhere else.
 
 **Answers never edit the brief.** Accepting or rejecting appends to
 `confirmed.jsonl`. The brief is the record of what was proposed. Rejections are

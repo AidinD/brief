@@ -85,3 +85,34 @@ test('the judge step is self-contained', () => {
   assert.match(text, /needsYou/i)
   assert.ok(text.length > 200, 'the judge assignment should not be a stub')
 })
+
+const flatJudge = () => judgeAssignment({ dataDir: scratch() }).replace(/\s+/g, ' ')
+
+test('the judge is told an overdue commitment goes in behind, never in confirm', () => {
+  /*
+   * The first brief that reached Tend put three overdue duties in the confirm
+   * section, where the only two answers are keep and reject and neither one is
+   * true. A prompt that does not say where they go gets that answer again.
+   */
+  const prompt = flatJudge()
+
+  assert.match(prompt, /belongs HERE and never in confirm/i)
+  assert.match(prompt, /keeping it files a status that is stale/i)
+  assert.match(prompt, /behind 3/, 'the cap is stated with the others')
+  assert.match(prompt, /"behind":/, 'the shape includes the section')
+})
+
+test('the judge is told a candidate must be answerable, and that Tend already holds its own', () => {
+  const prompt = flatJudge()
+
+  // The old rule named DECISIONS.md only, so a duty in Tend read as fair game.
+  assert.match(prompt, /Anything a system already holds and keeps holding is not a candidate/i)
+  assert.match(prompt, /a duty in Tend and a task in Jot/i)
+  assert.match(prompt, /must be ANSWERABLE by keep or reject/i)
+})
+
+test('the judge is told a backlog is not a brief', () => {
+  const prompt = flatJudge()
+  assert.match(prompt, /At most three/i)
+  assert.match(prompt, /a backlog on a morning page is the thing this app exists not to be/i)
+})

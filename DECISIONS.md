@@ -3,6 +3,50 @@
 Newest first. Each entry: the date, what was decided, what else was considered,
 and why this won.
 
+## 2026-08-25 - What you owe gets its own section, because confirm cannot answer it
+
+**Decided.** A fourth section, `behind`, holding commitments past their interval
+and people who have gone unspoken to. It renders above the world, counts towards
+the masthead sentence, and carries no buttons. Cap of three, the tightest in the
+app.
+
+**What went wrong.** The first brief whose generator reached Tend put three items
+in `confirm`: feedback rounds 62 weeks overdue, project check-ins 30 weeks
+overdue, six of nine people unspoken to this month. Every one of them true and
+worth knowing. The reader looked at them and did not know what to do, which is
+the correct reaction: the section offers keep and reject, and neither is an
+answer. Keeping appends the item to `kept.md`, a permanent append-only record -
+so it files a status that is stale within the month. Rejecting writes a line
+teaching the generator not to suggest it again, which is a lie about something
+that matters.
+
+**Why the existing rule did not catch it.** The contract already said a decision
+that already has a home is not a candidate, and Tend is emphatically the home for
+a duty Tend is tracking. But the rule named `DECISIONS.md` specifically, so the
+generator read it as being about repos. The rule is now stated generally, with
+Tend and Jot named, and joined by a second one that is easier to apply: a
+candidate must be answerable by keep or reject.
+
+**What else was considered.** Dropping the duties from Brief entirely, on the
+grounds that Tend and Helm own them - correct about ownership, but it throws away
+the one moment in the day when the reader is actually looking. And putting them
+in `world.needsYou`, which the format arguably anticipated, since `anchor` is
+documented as "a Jot category, a duty, a person". That was rejected on the same
+grounds as the bug fixed earlier the same day: `world.needsYou` renders under the
+heading "The world", and a duty Tend is tracking did not come from the world. A
+true item under a false heading is the failure that was just removed from the
+staleness warning, and it would have been reintroduced eight hours later.
+
+**Why it counts towards the masthead.** "Three things need you" is the most
+useful line on the page, and something overdue needs you in exactly the sense
+that sentence means. Counting only the news would make the sentence quietly
+wrong on the mornings it matters most.
+
+**Why the cap is three.** Everything you are behind on, listed, is a backlog, and
+a backlog on a morning page is the thing this app exists not to be. Over three,
+the generator is told to write one item saying how many and pointing at Tend.
+Tend keeps the rest and keeps counting; that is its job, not this one's.
+
 ## 2026-08-25 - A date in a title is a name, not a publication date
 
 **Decided.** When a source's title repeats the ISO date that is in its URL, the

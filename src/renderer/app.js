@@ -483,7 +483,15 @@ async function render() {
    * becoming the badge this app refuses to have. On a quiet day it says so, in
    * as many words as a busy day gets.
    */
-  const needs = world.needsYou.length;
+  /*
+   * What is owed counts towards the sentence, because it needs you in exactly
+   * the sense the sentence means: something is yours to do. It renders in its
+   * own section rather than under "The world" - a duty Tend is tracking did not
+   * come from the news, and putting it under that heading would be the same
+   * class of lie as announcing a readable brief could not be read.
+   */
+  const behind = today.behind ?? [];
+  const needs = world.needsYou.length + behind.length;
   const shape =
     needs === 0
       ? 'Nothing needs you today.'
@@ -511,6 +519,17 @@ async function render() {
       <h1 class="masthead-title">${esc(shape)}</h1>
       <p class="written">${esc(writtenLine(today))}</p>
     </header>
+
+    ${
+      behind.length > 0
+        ? `<section class="section behind">
+             <p class="eyebrow">From Tend, not from the news</p>
+             <h2 class="section-heading">Behind</h2>
+             <p class="section-note">Commitments past their interval, and people you have not spoken to. Tend holds the detail and keeps counting; this only says you are behind.</p>
+             ${behind.map((/** @type {any} */ i) => worldItem(i, true)).join('')}
+           </section>`
+        : ''
+    }
 
     <section class="section">
       <p class="eyebrow">Needs you, then worth knowing</p>

@@ -530,6 +530,53 @@ try {
     }
   });
 
+  /* ----------------------------------------------------- a dated source -- */
+
+  await page.click('#view-toggle');
+  await page.waitFor("document.querySelector('.end-note') !== null", 'the brief again');
+
+  writeBrief(todayLocal(), {
+    world: {
+      needsYou: [],
+      worthKnowing: [
+        {
+          id: 'old',
+          headline: 'Something reported months ago',
+          why: 'because',
+          anchor: 'https://example.com/2024/01/15/old-story',
+          sources: [{ title: 'x', url: 'https://example.com/2024/01/15/old-story' }]
+        }
+      ]
+    }
+  });
+  await page.waitFor("document.querySelector('.problems.doubtful') !== null", 'the doubt');
+
+  const doubt = await page.text('.problems.doubtful');
+  check('an old source is called out, in words that say what is actually wrong', () => {
+    if (!/worth checking/i.test(doubt)) {
+      throw new Error(`expected a "worth checking" lead, saw "${doubt.slice(0, 160)}"`);
+    }
+    // The bug this replaced: it announced that the brief could not be READ,
+    // about a story it had read exactly right, sending you after a parsing bug
+    // instead of at the date.
+    if (/could not be read/i.test(doubt)) {
+      throw new Error('a dated source is still being reported as an unreadable file');
+    }
+    if (!/days ago/.test(doubt)) {
+      throw new Error(`the age is missing: "${doubt.slice(0, 160)}"`);
+    }
+  });
+
+  const unreadable = await page.count('.problems.unreadable');
+  check('and the unreadable-file warning stays out of it', () => {
+    if (unreadable !== 0) {
+      throw new Error('a readable brief raised a parse problem');
+    }
+  });
+
+  await page.click('#view-toggle');
+  await page.waitFor("document.querySelector('.send-row, .topic') !== null", 'the send list again');
+
   /* ------------------------------------------------------- interests -- */
 
   // The wording of an interest IS the search, so it has to be editable in place.

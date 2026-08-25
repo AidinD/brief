@@ -276,6 +276,29 @@ function problemsNote(problems) {
     </div>`;
 }
 
+/**
+ * Things the brief says that do not hold up.
+ *
+ * Separate from `problemsNote`, and the wording is the whole reason. A problem
+ * means the file could not be read. A doubt means it read perfectly and is
+ * telling you something suspect - a story citing a source from five months ago.
+ * Announcing "some of the brief could not be read" about a story that was read
+ * exactly right sends you looking for a parsing bug instead of at the date.
+ *
+ * @param {string[]} doubts
+ */
+function doubtsNote(doubts) {
+  if (doubts.length === 0) {
+    return '';
+  }
+  const lead = doubts.length === 1 ? 'One thing here is worth checking:' : 'Some things here are worth checking:';
+  return `
+    <div class="problems doubtful">
+      ${lead}
+      <ul>${doubts.map((doubt) => `<li>${esc(doubt)}</li>`).join('')}</ul>
+    </div>`;
+}
+
 /* ------------------------------------------------------ the send list -- */
 
 /**
@@ -437,7 +460,7 @@ async function render() {
     return;
   }
 
-  const { brief: today, dropped, problems, missing } = state;
+  const { brief: today, dropped, problems, doubts, missing } = state;
   const stale = today.date !== state.today;
 
   dateline.textContent = missing ? '' : longDate(today.date);
@@ -471,6 +494,7 @@ async function render() {
   page.innerHTML = `
     ${progressNote(progress)}
     ${problemsNote(problems)}
+    ${doubtsNote(doubts ?? [])}
     ${modelNote(state.models ?? [])}
     ${overflowNote(dropped)}
     ${

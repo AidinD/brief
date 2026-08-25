@@ -81,6 +81,63 @@ export function emptyBrief(date, now) {
   };
 }
 
+/**
+ * How old a dated source may be before the brief calls it out.
+ *
+ * The fetch is told to search the last 48 hours, but a primary source can
+ * legitimately be a few days old - a filing, a changelog, a report published
+ * Friday and read on Monday. Fourteen days is not a precision check; it is an
+ * obviousness check, and it exists because a brief that presents old news as
+ * this morning's is worse than a brief with nothing in it.
+ */
+export const STALE_SOURCE_DAYS = 14;
+
+/**
+ * The date a news URL carries in its own path, if it carries one.
+ *
+ * Publishers put it there: `/2026/03/23/`, `/2026-03-23-`, `/2026/03/`. This is
+ * the only date available without fetching the page, and it is the publisher's
+ * own claim rather than the model's - which is the point. A model that
+ * misremembers when something happened will still quote the URL correctly.
+ *
+ * Returns null when there is no date to read, which is most URLs. Absence is
+ * never treated as a problem: guessing would flag half the brief.
+ *
+ * @param {string} url
+ * @returns {Date | null}
+ */
+export function dateInUrl(url) {
+  const match = /(?:^|[/\-_])(20\d{2})[/\-_](0[1-9]|1[0-2])(?:[/\-_](0[1-9]|[12]\d|3[01]))?(?:[/\-_]|$)/.exec(
+    String(url ?? '')
+  );
+  if (match === null) {
+    return null;
+  }
+  const [, year, month, day] = match;
+  const parsed = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day ?? '01')));
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/**
+ * How many days before `now` a story's own sources were published, if they say.
+ *
+ * Takes the NEWEST dated source: a story can cite background alongside the news,
+ * and the oldest link is not what the story is about.
+ *
+ * @param {{ anchor?: string, sources?: Source[] }} story
+ * @param {number} now
+ * @returns {number | null} null when nothing carried a date
+ */
+export function sourceAgeDays(story, now) {
+  const urls = [story.anchor, ...(story.sources ?? []).map((source) => source.url)];
+  const dates = urls.map((url) => dateInUrl(String(url ?? ''))).filter((date) => date !== null);
+  if (dates.length === 0) {
+    return null;
+  }
+  const newest = Math.max(...dates.map((date) => /** @type {Date} */ (date).getTime()));
+  return Math.floor((now - newest) / 86400000);
+}
+
 /** @param {unknown} value */
 const str = (value) => (typeof value === 'string' ? value : '');
 
@@ -117,7 +174,8 @@ export function parseBrief(raw, fallbackDate, now) {
         problems.push(`An item in ${where} has no headline and was dropped.`);
         continue;
       }
-      out.push({
+      /** @type {WorldItem} */
+      const story = {
         id: str(entry.id) || `${where}-${out.length}`,
         headline: str(entry.headline).trim(),
         why: str(entry.why).trim(),
@@ -125,7 +183,21 @@ export function parseBrief(raw, fallbackDate, now) {
         sources: list(entry.sources)
           .map((source) => ({ title: str(/** @type {any} */ (source).title), url: str(/** @type {any} */ (source).url) }))
           .filter((source) => source.url !== '')
-      });
+      };
+
+      // The story is kept, and the doubt is stated. Dropping it would hide the
+      // fetch's mistake; presenting it silently would pass the mistake on. A
+      // brief that quietly serves old news as this morning's is the one failure
+      // that makes the whole thing untrustworthy - it happened on 2026-08-25,
+      // where a Spotify layoff round from 2023 arrived under a March link.
+      const age = sourceAgeDays(story, now);
+      if (age !== null && age > STALE_SOURCE_DAYS) {
+        problems.push(
+          `"${story.headline}" cites a source published ${age} days ago. The brief covers the last 48 hours; check the date before trusting it.`
+        );
+      }
+
+      out.push(story);
     }
     return out;
   };

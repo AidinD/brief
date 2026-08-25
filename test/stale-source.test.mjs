@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { dateInUrl, parseBrief, sourceAgeDays, STALE_SOURCE_DAYS } from '../src/domain/brief.js'
+import { dateInUrl, parseBrief, sourceAgeDays, titleNamesTheDate, STALE_SOURCE_DAYS } from '../src/domain/brief.js'
 
 /*
  * On 2026-08-25 the brief led with "Spotify varslar 1 500 anställda, 17% av
@@ -126,4 +126,74 @@ test('the threshold leaves room for a source published last week', () => {
     }
   }
   assert.deepEqual(parseBrief(within, '2026-08-25', NOW).doubts, [])
+})
+
+test('a specification named by its revision date is not read as old news', () => {
+  /*
+   * The first false positive, on 2026-08-25. The MCP blog names its posts after
+   * the spec revision - /posts/2026-07-28/, titled "The 2026-07-28
+   * Specification" - and the post went up that morning. The window doubted it
+   * for being 28 days old, which is exactly the kind of nagging that teaches you
+   * to ignore the warning that matters.
+   */
+  const raw = {
+    date: '2026-08-25',
+    world: {
+      needsYou: [
+        {
+          id: 'mcp-stateless-shift',
+          headline: 'MCP-protokollet går mot statslös arkitektur',
+          why: 'Du kör flera MCP-servrar lokalt.',
+          anchor: 'MCP-servrar',
+          sources: [
+            { title: 'The New MCP Roadmap | Model Context Protocol Blog', url: 'https://blog.modelcontextprotocol.io/posts/mcp-roadmap/' },
+            { title: 'The 2026-07-28 Specification | Model Context Protocol Blog', url: 'https://blog.modelcontextprotocol.io/posts/2026-07-28/' }
+          ]
+        }
+      ],
+      worthKnowing: []
+    }
+  }
+
+  const { brief, doubts } = parseBrief(raw, '2026-08-25', NOW)
+  assert.equal(brief.world.needsYou.length, 1, 'the story is untouched')
+  assert.deepEqual(doubts, [], `a spec named by its date raised: ${JSON.stringify(doubts)}`)
+})
+
+test('a date written in prose in the title still dates the story', () => {
+  // The rule keys on the ISO form, because that is what a designation looks
+  // like. A recap that says "August 24, 2026" is dating itself, not naming
+  // itself, so the URL's date stands.
+  const story = {
+    sources: [
+      {
+        title: 'Financial & Forex Market Recap – August 24, 2026',
+        url: 'https://www.babypips.com/news/financial-forex-market-recap-2026-08-24'
+      }
+    ]
+  }
+  assert.equal(sourceAgeDays(story, NOW), 1)
+})
+
+test('a named revision does not hide a genuinely old source beside it', () => {
+  // Suppressing the designation must not suppress the story: the other link is
+  // still four years old, and that is still worth saying.
+  const story = {
+    sources: [
+      { title: 'The 2026-07-28 Specification', url: 'https://x.com/posts/2026-07-28/' },
+      { title: 'The original announcement', url: 'https://x.com/2022/05/09/announcement' }
+    ]
+  }
+  const age = sourceAgeDays(story, NOW)
+  assert.ok(age !== null && age > STALE_SOURCE_DAYS, `expected the old link to count, saw ${age}`)
+})
+
+test('titleNamesTheDate reads the separators publishers actually use', () => {
+  const date = new Date(Date.UTC(2026, 6, 28))
+  for (const title of ['The 2026-07-28 Specification', 'Spec 2026/07/28', 'v2026.07.28', 'build 20260728']) {
+    assert.equal(titleNamesTheDate(title, date), true, title)
+  }
+  for (const title of ['The July specification', 'Published 28 July 2026', '', 'Spec 2026-07-27']) {
+    assert.equal(titleNamesTheDate(title, date), false, title)
+  }
 })

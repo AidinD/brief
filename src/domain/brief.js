@@ -119,6 +119,33 @@ export function dateInUrl(url) {
 }
 
 /**
+ * Is the date in this URL a name rather than a publication date?
+ *
+ * Specifications are named by their revision date, and the name goes in both the
+ * slug and the title: `blog.modelcontextprotocol.io/posts/2026-07-28/`, titled
+ * "The 2026-07-28 Specification". Read as a publication date it made the window
+ * doubt a post that had gone up that morning.
+ *
+ * The tell is the ISO form. A publisher writing the day it published writes it
+ * in prose - "August 24, 2026" - and only a designation is carried around as
+ * `2026-07-28`. So a title repeating the URL's date verbatim is naming a thing,
+ * not dating itself.
+ *
+ * @param {string} title
+ * @param {Date} date
+ */
+export function titleNamesTheDate(title, date) {
+  const [year, month, day] = date.toISOString().slice(0, 10).split('-');
+  const written = [
+    `${year}-${month}-${day}`,
+    `${year}/${month}/${day}`,
+    `${year}.${month}.${day}`,
+    `${year}${month}${day}`
+  ];
+  return written.some((form) => String(title ?? '').includes(form));
+}
+
+/**
  * How many days before `now` a story's own sources were published, if they say.
  *
  * Takes the NEWEST dated source: a story can cite background alongside the news,
@@ -129,13 +156,21 @@ export function dateInUrl(url) {
  * @returns {number | null} null when nothing carried a date
  */
 export function sourceAgeDays(story, now) {
-  const urls = [story.anchor, ...(story.sources ?? []).map((source) => source.url)];
-  const dates = urls.map((url) => dateInUrl(String(url ?? ''))).filter((date) => date !== null);
+  const cited = [
+    { url: String(story.anchor ?? ''), title: '' },
+    ...(story.sources ?? []).map((source) => ({
+      url: String(source.url ?? ''),
+      title: String(source.title ?? '')
+    }))
+  ];
+  const dates = cited
+    .map((source) => ({ title: source.title, date: dateInUrl(source.url) }))
+    .filter((dated) => dated.date !== null && !titleNamesTheDate(dated.title, dated.date))
+    .map((dated) => /** @type {Date} */ (dated.date).getTime());
   if (dates.length === 0) {
     return null;
   }
-  const newest = Math.max(...dates.map((date) => /** @type {Date} */ (date).getTime()));
-  return Math.floor((now - newest) / 86400000);
+  return Math.floor((now - Math.max(...dates)) / 86400000);
 }
 
 /** @param {unknown} value */

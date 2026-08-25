@@ -3,6 +3,37 @@
 Newest first. Each entry: the date, what was decided, what else was considered,
 and why this won.
 
+## 2026-08-25 - A date in a title is a name, not a publication date
+
+**Decided.** When a source's title repeats the ISO date that is in its URL, the
+staleness check ignores that date rather than treating it as when the piece was
+published.
+
+**What went wrong.** The staleness check shipped in the morning and produced a
+false positive the same day. The MCP blog names its posts after the spec
+revision: `blog.modelcontextprotocol.io/posts/2026-07-28/`, titled "The
+2026-07-28 Specification". The post went up that morning. The window said it
+cited a source published 28 days ago.
+
+**Why that is worse than it looks.** The warning exists to be believed. A check
+that fires on a story that is fine teaches you to skim past it, and the next time
+it fires it will be on the 2023 layoff story it was built for. A false positive
+costs the whole feature, not one line.
+
+**What else was considered.** Requiring a date segment to be followed by a slug,
+on the theory that `/2026/03/23/spotify-layoffs` is a publication path while
+`/posts/2026-07-28/` is a name. It fails immediately: real publishers put the
+date last too, as in `/news/financial-forex-market-recap-2026-08-24`. Also
+considered asking the fetch to record a published date per source, which moves
+the check onto the model's memory - the exact thing the URL heuristic exists to
+avoid.
+
+**Why the title works.** The ISO form is the tell. A publisher stating when it
+published writes prose - "August 24, 2026" - and only a designation gets carried
+around as `2026-07-28`. So a title repeating the URL's date verbatim is naming
+something. A genuinely old link beside a named revision still counts, and is
+still reported.
+
 ## 2026-08-25 - Market levels get in. Predictions do not.
 
 **Decided.** Brief reports published market figures - a sentiment gauge, a

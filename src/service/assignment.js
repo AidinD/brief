@@ -190,17 +190,21 @@ filter, and a suggestion resembling a past rejection should not be made again.
 
 The lesson, which is one principle from a library the reader wrote themselves:
 - The library is Nib. Read ${join(nibDir, 'index.json')} and take the notes
-  carrying the tag whose name is "Principle". Each one's file is beside it in
-  ${join(nibDir, 'notes')}, named by its id.
+  carrying the tag whose name is "Principle", in WHICHEVER category they sit -
+  some come from a book, some were written straight down. Each one's file is
+  beside it in ${join(nibDir, 'notes')}, named by its id.
 - Exactly ONE, or none at all. Two principles a morning is a reading list, and a
   reading list does not get read.
 - "title" is the note's own title and "line" is its opening sentence, both as
   written. Do not paraphrase and do not improve them: they were written by hand,
   and the wording is what makes one recognisable a second time. "source" is the
-  sub-category the note sits in, which is the book.
+  sub-category the note sits in: the book, or the theme it was filed under.
 - Read ${join(dataDir, 'lessons.jsonl')} if it exists and do not repeat anything
-  from the last thirty entries. After you have written the brief, append one line
-  to it: {"at": <epoch ms>, "date": "<today>", "id": "<note id>", "title": "..."}.
+  from the last thirty entries. If that would leave nothing - the library is
+  smaller than thirty - take the least recently seen one instead. Going silent
+  because everything has been shown once is the wrong failure; a principle worth
+  keeping is worth meeting again. After you have written the brief, append one
+  line: {"at": <epoch ms>, "date": "<today>", "id": "<note id>", "title": "..."}.
 - Prefer one that connects to something actually on today's page - a person you
   are behind on, a conversation coming up - and put that connection in "why", in
   one short clause. If nothing connects, pick the least recently seen and leave

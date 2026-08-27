@@ -81,12 +81,12 @@ test('the standing rules the prompt already had are still there', () => {
 })
 
 test('the judge step is self-contained', () => {
-  const text = judgeAssignment({ dataDir: scratch() })
+  const text = judgeAssignment({ dataDir: scratch(), nibDir: scratch() })
   assert.match(text, /needsYou/i)
   assert.ok(text.length > 200, 'the judge assignment should not be a stub')
 })
 
-const flatJudge = () => judgeAssignment({ dataDir: scratch() }).replace(/\s+/g, ' ')
+const flatJudge = () => judgeAssignment({ dataDir: scratch(), nibDir: scratch() }).replace(/\s+/g, ' ')
 
 test('the judge is told an overdue commitment goes in behind, never in confirm', () => {
   /*
@@ -115,4 +115,37 @@ test('the judge is told a backlog is not a brief', () => {
   const prompt = flatJudge()
   assert.match(prompt, /At most three/i)
   assert.match(prompt, /a backlog on a morning page is the thing this app exists not to be/i)
+})
+
+test('the judge is told to take the principle as written, not to improve it', () => {
+  /*
+   * The library is 13 principles written by hand over months, from How to Win
+   * Friends and The Manager's Path. The value is recognising the sentence the
+   * second time, which a paraphrase destroys while looking like an improvement.
+   */
+  const prompt = flatJudge()
+
+  assert.match(prompt, /Do not paraphrase and do not improve them/i)
+  assert.match(prompt, /Exactly ONE, or none at all/i)
+  assert.match(prompt, /a reading list does not get read/i)
+})
+
+test('the judge is told where the library is and not to repeat itself', () => {
+  const prompt = flatJudge()
+
+  assert.match(prompt, /index\.json/, 'the Nib index is named')
+  assert.match(prompt, /tag whose name is "Principle"/i)
+  assert.match(prompt, /lessons\.jsonl/, 'rotation has a file to read and append to')
+  assert.match(prompt, /last thirty entries/i)
+})
+
+test('the principle may never be turned into a rebuke, or invented', () => {
+  // It is the one thing on the page that asks for nothing. A "why" that says
+  // what the reader did wrong makes it one more demand.
+  const prompt = flatJudge()
+
+  assert.match(prompt, /Never a rebuke/i)
+  assert.match(prompt, /never what the reader did wrong/i)
+  assert.match(prompt, /an invented one is worse than none/i)
+  assert.match(prompt, /A morning without one is fine/i)
 })

@@ -51,6 +51,21 @@ export const LIMITS = {
  */
 
 /**
+ * One principle, drawn from the library in Nib.
+ *
+ * Singular, never a list, and that is the cap. Two principles a morning is a
+ * reading list, and a reading list is not read - the whole value is that there
+ * is exactly one thing to carry into the day.
+ *
+ * @typedef {object} Lesson
+ * @property {string} id The Nib note it came from, so it is not repeated soon.
+ * @property {string} title The line you remember it by.
+ * @property {string} line The one sentence underneath it.
+ * @property {string} [source] The book, so it can be looked up.
+ * @property {string} [why] What on today's page brought it up, if anything did.
+ */
+
+/**
  * @typedef {object} Brief
  * @property {number} version
  * @property {string} date `YYYY-MM-DD`, the day it is for.
@@ -59,6 +74,7 @@ export const LIMITS = {
  * @property {WorldItem[]} behind Commitments past their interval, from Tend rather than the news.
  * @property {{ summary: string, moments: { id: string, text: string, when?: string }[] }} week
  * @property {Candidate[]} confirm
+ * @property {Lesson | null} lesson One principle from the library, or nothing.
  * @property {{ fetch?: string, judge?: string }} [provenance] Which model produced which half.
  * @property {string[]} [notes] Anything the generator wants to say about itself.
  */
@@ -80,7 +96,38 @@ export function emptyBrief(date, now) {
     behind: [],
     week: { summary: '', moments: [] },
     confirm: [],
+    lesson: null,
     notes: []
+  };
+}
+
+/**
+ * Read the principle, or decide there is not one.
+ *
+ * Returns null rather than a half-filled object. A title with no sentence under
+ * it is a heading, and a sentence with no title is a fortune cookie; neither is
+ * something you can carry into a day, and rendering either would teach the
+ * reader to skip the bottom of the page.
+ *
+ * @param {unknown} raw
+ * @returns {Lesson | null}
+ */
+export function parseLesson(raw) {
+  if (raw === null || typeof raw !== 'object') {
+    return null;
+  }
+  const entry = /** @type {any} */ (raw);
+  const title = str(entry.title).trim();
+  const line = str(entry.line).trim();
+  if (title === '' || line === '') {
+    return null;
+  }
+  return {
+    id: str(entry.id).trim() || title,
+    title,
+    line,
+    source: str(entry.source).trim() || undefined,
+    why: str(entry.why).trim() || undefined
   };
 }
 
@@ -300,6 +347,7 @@ export function parseBrief(raw, fallbackDate, now) {
         .filter((moment) => moment.text !== '')
     },
     confirm,
+    lesson: parseLesson(input.lesson),
     // Kept exactly as written. A brief that records nothing must stay recording
     // nothing, so the window can say "there is no way to tell" rather than
     // inventing a reassuring default.

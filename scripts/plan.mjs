@@ -19,13 +19,14 @@
  * party that was not already going to a search engine.
  *
  *   node scripts/plan.mjs            print the assignment the fetch step is given
+ *   node scripts/plan.mjs --judge    print the second half, which writes the brief
  *   node scripts/plan.mjs --review   draft outbound.json, everything switched off
  *
  * `npm run morning` is what actually runs it, once a day.
  */
 
-import { requireDataDir, resolveJotDir } from '../src/domain/paths.js';
-import { fetchAssignment } from '../src/service/assignment.js';
+import { requireDataDir, resolveJotDir, resolveNibDir } from '../src/domain/paths.js';
+import { fetchAssignment, judgeAssignment } from '../src/service/assignment.js';
 import { holdings } from '../src/service/holdings.js';
 import { draftOutbound } from '../src/service/outbound.js';
 
@@ -39,6 +40,13 @@ if (review) {
   console.log(`${path}\n${total} items, ${added} new, all new ones switched off.`);
   console.log('\nTick what may be searched for. Interests are the search terms;');
   console.log('these are context, and a category name is a filing label.');
+  process.exit(0);
+}
+
+// The judge half is worth being able to read on its own. It is the half that
+// decides, and it is the one nobody sees until a brief comes out wrong.
+if (process.argv.includes('--judge')) {
+  console.log(judgeAssignment({ dataDir: dir, nibDir: resolveNibDir().dir }));
   process.exit(0);
 }
 

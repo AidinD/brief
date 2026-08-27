@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { LIMITS, clamp, emptyBrief, isStale, parseBrief } from '../src/domain/brief.js'
+import { LIMITS, clamp, emptyBrief, isStale, parseBrief, parseLesson } from '../src/domain/brief.js'
 import { localDate, relativeDay } from '../src/domain/time.js'
 
 const NOW = Date.UTC(2026, 7, 23, 9, 0, 0)
@@ -167,4 +167,58 @@ test('behind carries the same shape as a world item, and drops a blank one the s
     problems.some((p) => /behind/.test(p)),
     `the drop should name the section, saw ${JSON.stringify(problems)}`
   )
+})
+
+test('a lesson needs both halves, because neither works alone', () => {
+  /*
+   * A title with no sentence under it is a heading; a sentence with no title is
+   * a fortune cookie. Rendering either teaches you to skip the bottom of the
+   * page, which is where the one thing that asks nothing of you lives.
+   */
+  assert.equal(parseLesson({ title: '1.1 · Kritisera inte', line: '' }), null)
+  assert.equal(parseLesson({ title: '   ', line: 'En mening.' }), null)
+  assert.equal(parseLesson(null), null)
+  assert.equal(parseLesson('a string'), null)
+})
+
+test('a lesson keeps the wording it was written in', () => {
+  // The point of a library you wrote yourself is recognising the sentence the
+  // second time. A parser that trimmed or reflowed it would defeat that.
+  const lesson = parseLesson({
+    id: 'note-sample',
+    title: '1.1 · Kritisera inte - fråga i stället',
+    line: 'Kritik får nästan alltid mottagaren att försvara sitt beslut i stället för att ompröva det.',
+    source: 'How to Win Friends and Influence People',
+    why: 'Fyra feedbackrundor väntar'
+  })
+
+  assert.ok(lesson)
+  assert.equal(lesson.title, '1.1 · Kritisera inte - fråga i stället')
+  assert.match(lesson.line, /ompröva det\.$/)
+  assert.equal(lesson.source, 'How to Win Friends and Influence People')
+  assert.equal(lesson.why, 'Fyra feedbackrundor väntar')
+})
+
+test('a lesson falls back to its own title for an id, so rotation still works', () => {
+  const lesson = parseLesson({ title: 'Namnlös princip', line: 'En mening.' })
+  assert.equal(lesson?.id, 'Namnlös princip')
+})
+
+test('a brief with no lesson is a brief, not a broken one', () => {
+  // Some mornings the library is unreachable or everything in it is too recent.
+  // Nothing is the honest answer, and it must not read as a parse failure.
+  const { brief, problems } = parseBrief({ date: '2026-08-25' }, '2026-08-25', 0)
+  assert.equal(brief.lesson, null)
+  assert.deepEqual(problems, [])
+  assert.equal(emptyBrief('2026-08-25', 0).lesson, null)
+})
+
+test('the lesson is one, and clamp has nothing to say about it', () => {
+  // The cap is the shape: a single object, never a list. Two principles a
+  // morning is a reading list, and a reading list does not get read.
+  const brief = emptyBrief('2026-08-25', 0)
+  brief.lesson = { id: 'x', title: 'En princip', line: 'En mening.' }
+  const { brief: cut, dropped } = clamp(brief)
+  assert.equal(cut.lesson?.title, 'En princip')
+  assert.deepEqual(dropped, [])
 })

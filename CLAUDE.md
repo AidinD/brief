@@ -1,7 +1,8 @@
 # Brief - project notes
 
-Brief is the morning surface: the world, what you are behind on, your week, and
-the few things that want confirming. It sits **beside** Jot (`D:\Repo\Tools\jot`), Nib
+Brief is the morning surface: the world, what you are behind on, your week, the
+few things that want confirming, and one principle to carry into the day. It
+sits **beside** Jot (`D:\Repo\Tools\jot`), Nib
 (`D:\Repo\Tools\nib`) and Tend (`D:\Repo\Tools\tend`), not inside any of them.
 
 ## Read these first
@@ -143,6 +144,14 @@ assuming it is fine.
 
 **Brief renders, something else writes.** No scrapers, no scheduler, no network
 code in the app. If you are adding a fetch to `src/`, stop.
+
+**The library belongs to the reader, and the app only quotes it.** The daily
+principle is a note in Nib, tagged `Principle` under `Books`, written by hand
+over months. The generator picks one and copies its title and opening sentence
+verbatim. It never paraphrases, never writes a new one, and never turns the
+`why` into a rebuke - it is the one thing on the page that asks for nothing, and
+a principle you have to answer is just another task. No principle at all is a
+fine morning; an invented one is not.
 
 **A section that offers an answer must be answerable.** The confirm section has
 exactly two answers, keep and reject, and everything in it has to be resolved by

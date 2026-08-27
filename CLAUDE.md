@@ -146,8 +146,9 @@ assuming it is fine.
 code in the app. If you are adding a fetch to `src/`, stop.
 
 **The library belongs to the reader, and the app only quotes it.** The daily
-principle is a note in Nib, tagged `Principle` under `Books`, written by hand
-over months. The generator picks one and copies its title and opening sentence
+principle is a note in Nib tagged `Principle` - `Books` for the ones from a book,
+`Practice` for the ones written straight down. The generator reads every tagged
+note whichever category it sits in, picks one, and copies its title and opening sentence
 verbatim. It never paraphrases, never writes a new one, and never turns the
 `why` into a rebuke - it is the one thing on the page that asks for nothing, and
 a principle you have to answer is just another task. No principle at all is a

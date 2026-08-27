@@ -100,8 +100,9 @@ Same item shape as a world story, deliberately - a headline, why it reaches you,
 what it hangs off - because a second shape would only mean a second renderer.
 
 **`lesson` is one principle, and the only thing on the page that asks for
-nothing.** It comes from the library in Nib - the notes tagged `Principle`, under
-`Books` - and is rendered last, immediately above the closing rule. That position
+nothing.** It comes from the library in Nib - every note tagged `Principle`,
+whichever category it sits in, since some come from a book and some were written
+straight down - and is rendered last, immediately above the closing rule. That position
 is the point: everything above it is the day making demands, and reaching the
 bottom should be worth something rather than merely being the end.
 
@@ -119,7 +120,11 @@ correct on a morning when the library cannot be read or everything in it is too
 recent. An invented one is worse than none.
 
 Repeats are avoided through `lessons.jsonl` in the data directory, one line per
-morning, which the generator reads before choosing and appends to after.
+morning, which the generator reads before choosing and appends to after. Thirty
+days is the target, not a rule: once the library is smaller than that the least
+recently seen one comes round again, because going silent after showing
+everything once is the wrong failure. A principle worth keeping is worth meeting
+twice.
 
 **The confirm section is the point of the whole app.** Candidate decisions worth
 logging and candidate stories worth keeping: things with nowhere else to live,

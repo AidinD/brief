@@ -137,6 +137,16 @@ test('the judge is told where the library is and not to repeat itself', () => {
   assert.match(prompt, /tag whose name is "Principle"/i)
   assert.match(prompt, /lessons\.jsonl/, 'rotation has a file to read and append to')
   assert.match(prompt, /last thirty entries/i)
+  assert.match(prompt, /in WHICHEVER category they sit/i, 'not only the ones from books')
+})
+
+test('the rotation degrades to the oldest rather than going silent', () => {
+  // The library is 25 principles and a thirty-day exclusion would empty it on
+  // day 26, turning a working feature off for good with nothing to show why.
+  const prompt = flatJudge()
+
+  assert.match(prompt, /take the least recently seen one instead/i)
+  assert.match(prompt, /Going silent because everything has been shown once is the wrong failure/i)
 })
 
 test('the principle may never be turned into a rebuke, or invented', () => {

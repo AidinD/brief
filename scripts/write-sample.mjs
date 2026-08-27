@@ -111,6 +111,13 @@ const brief = {
       evidence: 'helm, 2026-08-23'
     }
   ],
+  lesson: {
+    id: 'note-sample',
+    title: '1.1 · Kritisera inte - fråga i stället',
+    line: 'Kritik får nästan alltid mottagaren att försvara sitt beslut i stället för att ompröva det. Den vinner argumentet och förlorar personen.',
+    source: 'How to Win Friends and Influence People',
+    why: 'Fyra feedbackrundor väntar'
+  },
   notes: ['Sample brief. Written by scripts/write-sample.mjs, not by a model.']
 };
 

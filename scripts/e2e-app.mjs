@@ -530,12 +530,72 @@ try {
     }
   });
 
-  /* ---------------------------------------------------------- behind -- */
+  /* ---------------------------------------------------------- lesson -- */
 
-  step('What you are behind on');
+  step('One principle from the library');
 
   await page.click('#view-toggle');
   await page.waitFor("document.querySelector('.end-note') !== null", 'the brief again');
+
+  writeBrief(todayLocal(), {
+    lesson: {
+      id: 'note-sample',
+      title: '1.1 · Kritisera inte - fråga i stället',
+      line: 'Kritik får nästan alltid mottagaren att försvara sitt beslut i stället för att ompröva det.',
+      source: 'How to Win Friends and Influence People',
+      why: 'Fyra feedbackrundor väntar'
+    }
+  });
+  await page.waitFor("document.querySelector('.lesson') !== null", 'the lesson');
+
+  const lesson = await page.text('.lesson');
+  check('the principle arrives in the wording it was written in, å ä ö intact', () => {
+    // The value of a library you wrote yourself is recognising the sentence a
+    // second time, which a reflow or a stray entity destroys.
+    if (!/1\.1 · Kritisera inte - fråga i stället/.test(lesson)) {
+      throw new Error(`the title did not survive: "${lesson.slice(0, 200)}"`);
+    }
+    if (!/ompröva/.test(lesson)) {
+      throw new Error(`the sentence did not survive: "${lesson.slice(0, 200)}"`);
+    }
+    if (!/How to Win Friends/.test(lesson)) {
+      throw new Error(`the source is missing: "${lesson.slice(0, 200)}"`);
+    }
+  });
+
+  const lessonPosition = await page.evaluate(
+    "(() => { const l = document.querySelector('.lesson'); const e = document.querySelector('.end'); return l === null || e === null ? -1 : (l.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING) ? 1 : 0; })()"
+  );
+  check('and it is the last thing on the page, so reaching the bottom is worth something', () => {
+    if (lessonPosition !== 1) {
+      throw new Error('the lesson is not immediately before the closing rule');
+    }
+  });
+
+  const lessonButtons = await page.count('.lesson button');
+  const lessonCount = await page.text('.masthead-title');
+  check('it asks nothing: no buttons, and it is not counted as needing you', () => {
+    if (lessonButtons !== 0) {
+      throw new Error(`the lesson offered ${lessonButtons} buttons`);
+    }
+    if (!/^One thing needs you/.test(lessonCount)) {
+      throw new Error(`the lesson changed the count, saw "${lessonCount}"`);
+    }
+  });
+
+  writeBrief(todayLocal(), { lesson: { title: 'A heading with nothing under it', line: '   ' } });
+  await page.waitFor("document.querySelector('.lesson') === null", 'the half-filled lesson to be refused');
+
+  const halfFilled = await page.count('.lesson');
+  check('half a lesson is no lesson, because a title alone is not a thought', () => {
+    if (halfFilled !== 0) {
+      throw new Error('a lesson with no sentence was rendered anyway');
+    }
+  });
+
+  /* ---------------------------------------------------------- behind -- */
+
+  step('What you are behind on');
 
   writeBrief(todayLocal(), {
     behind: [

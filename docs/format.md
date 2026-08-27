@@ -34,6 +34,7 @@ window is watching, and a plain write is visible half-finished.
     "moments": [ { "id": "...", "when": "Monday", "text": "..." } ]
   },
   "confirm": [ { "id": "...", "kind": "decision", "text": "...", "why": "...", "evidence": "..." } ],
+  "lesson": { "id": "note-...", "title": "...", "line": "...", "source": "...", "why": "..." },
   "provenance": { "fetch": "claude-haiku-4-5-20251001", "judge": "claude-sonnet-5" },
   "notes": ["Anything the generator wants to say about itself."]
 }
@@ -60,6 +61,7 @@ valid JSON leaves the previous brief on screen and warns.
 | `world.needsYou` | 5 |
 | `world.worthKnowing` | 7 |
 | `behind` | 3 |
+| `lesson` | 1, by shape - it is an object, not a list |
 | `week.moments` | 6 |
 | `confirm` | 5 |
 
@@ -96,6 +98,28 @@ this app exists not to be. Tend holds the rest and keeps counting.
 
 Same item shape as a world story, deliberately - a headline, why it reaches you,
 what it hangs off - because a second shape would only mean a second renderer.
+
+**`lesson` is one principle, and the only thing on the page that asks for
+nothing.** It comes from the library in Nib - the notes tagged `Principle`, under
+`Books` - and is rendered last, immediately above the closing rule. That position
+is the point: everything above it is the day making demands, and reaching the
+bottom should be worth something rather than merely being the end.
+
+`title` and `line` are the note's own title and opening sentence, **as written**.
+They were written by hand, and the value of a library you wrote yourself is
+recognising the sentence a second time - which a paraphrase destroys while
+looking like an improvement. Both are required; a title with no sentence is a
+heading and a sentence with no title is a fortune cookie, and either one teaches
+you to skip the bottom of the page.
+
+`why` names what on today's page brought it up, in one short clause, and only
+when that connection is true. It is never a rebuke: it says what raised the
+principle, never what the reader did wrong. Omitting `lesson` entirely is
+correct on a morning when the library cannot be read or everything in it is too
+recent. An invented one is worse than none.
+
+Repeats are avoided through `lessons.jsonl` in the data directory, one line per
+morning, which the generator reads before choosing and appends to after.
 
 **The confirm section is the point of the whole app.** Candidate decisions worth
 logging and candidate stories worth keeping: things with nowhere else to live,

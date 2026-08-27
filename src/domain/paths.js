@@ -72,3 +72,13 @@ export const resolveJotDir = () =>
 /** Tend's store, same idea: the role map says what you are responsible for. */
 export const resolveTendDir = () =>
   resolve(process.env.TEND_DATA_DIR, join(homedir(), 'AppData', 'Roaming', 'tend'));
+
+/**
+ * Nib's notes, which hold the library the daily principle is drawn from.
+ *
+ * Read-only and local, like the other two. The principles were written by hand
+ * over months; nothing here writes to Nib, and a brief that cannot find it
+ * simply has no principle that morning.
+ */
+export const resolveNibDir = () =>
+  resolve(process.env.NIB_DATA_DIR, join(homedir(), 'AppData', 'Roaming', 'nib'));

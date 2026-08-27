@@ -120,9 +120,10 @@ not the filter; ${outboundPath(dataDir)} is.`;
  *
  * @param {object} where
  * @param {string} where.dataDir
+ * @param {string} where.nibDir Nib's notes, which hold the library of principles.
  * @returns {string}
  */
-export function judgeAssignment({ dataDir }) {
+export function judgeAssignment({ dataDir, nibDir }) {
   return `Read ${join(dataDir, 'world.json')} and write ${join(dataDir, 'brief.json')}.
 
 Shape:
@@ -140,6 +141,7 @@ Shape:
   "week":    { "summary": "one paragraph", "moments": [{ "id": "...", "when": "Monday", "text": "..." }] },
   "confirm": [{ "id": "...", "kind": "decision|story|delegation|person", "text": "...",
                 "why": "...", "evidence": "..." }],
+  "lesson":  { "id": "note-...", "title": "...", "line": "...", "source": "...", "why": "..." },
   "notes":   ["anything you want to say about this run"]
 }
 
@@ -185,6 +187,29 @@ The confirm section, which is the point of the whole app. Three rules:
   is not the same as needing to be kept.
 Read ${join(dataDir, 'confirmed.jsonl')} first: what was rejected before is a
 filter, and a suggestion resembling a past rejection should not be made again.
+
+The lesson, which is one principle from a library the reader wrote themselves:
+- The library is Nib. Read ${join(nibDir, 'index.json')} and take the notes
+  carrying the tag whose name is "Principle". Each one's file is beside it in
+  ${join(nibDir, 'notes')}, named by its id.
+- Exactly ONE, or none at all. Two principles a morning is a reading list, and a
+  reading list does not get read.
+- "title" is the note's own title and "line" is its opening sentence, both as
+  written. Do not paraphrase and do not improve them: they were written by hand,
+  and the wording is what makes one recognisable a second time. "source" is the
+  sub-category the note sits in, which is the book.
+- Read ${join(dataDir, 'lessons.jsonl')} if it exists and do not repeat anything
+  from the last thirty entries. After you have written the brief, append one line
+  to it: {"at": <epoch ms>, "date": "<today>", "id": "<note id>", "title": "..."}.
+- Prefer one that connects to something actually on today's page - a person you
+  are behind on, a conversation coming up - and put that connection in "why", in
+  one short clause. If nothing connects, pick the least recently seen and leave
+  "why" out. A stated connection has to be true; an invented one is worse than
+  none.
+- Never a rebuke. "why" says what brought the principle up, never what the reader
+  did wrong. This is the one thing on the page that asks for nothing.
+- If the library cannot be read, or every principle is too recent, omit "lesson"
+  entirely. A morning without one is fine; a made-up one is not.
 
 Write the prose in Swedish, keeping å, ä and ö. Write to a temporary file in the
 same directory and rename it into place - the window is watching, and a plain

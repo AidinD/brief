@@ -90,6 +90,32 @@ function worldItem(item, needsYou) {
 }
 
 /**
+ * The principle, drawn from the library in Nib and shown last.
+ *
+ * Last on purpose. Everything above it is the day making demands; this is the
+ * one thing on the page that asks for nothing, and putting it at the bottom
+ * makes reaching the bottom worth something rather than merely finishing.
+ *
+ * It carries no buttons and is never counted. A principle you have to answer is
+ * a task, and there are enough of those higher up.
+ *
+ * @param {any} lesson
+ */
+function lessonNote(lesson) {
+  if (lesson === null || lesson === undefined) {
+    return '';
+  }
+  const attribution = [lesson.source, lesson.why].filter((part) => part).join(' · ');
+  return `
+    <aside class="lesson">
+      <p class="eyebrow">One from your library</p>
+      <p class="lesson-title">${esc(lesson.title)}</p>
+      <p class="lesson-line">${esc(lesson.line)}</p>
+      ${attribution ? `<p class="lesson-source">${esc(attribution)}</p>` : ''}
+    </aside>`;
+}
+
+/**
  * One candidate in the confirm section.
  *
  * @param {any} candidate
@@ -590,6 +616,8 @@ async function render() {
           : '<p class="kept-so-far quiet">Nothing kept yet. What you keep is appended to kept.md, which you can open and read.</p>'
       }
     </section>
+
+    ${lessonNote(today.lesson ?? null)}
 
     <div class="end">
       <div class="end-rule"></div>

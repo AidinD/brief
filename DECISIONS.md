@@ -3,6 +3,51 @@
 Newest first. Each entry: the date, what was decided, what else was considered,
 and why this won.
 
+## 2026-08-27 - The daily principle goes in Brief, and the library stays in Nib
+
+**Decided.** One principle a morning, drawn from the notes tagged `Principle` in
+Nib, rendered last on the page above the closing rule. Brief displays it; Nib
+owns it; Tend is not involved.
+
+**What was asked.** Somewhere to meet a lesson again - a principle from How to
+Win Friends, a point from The Manager's Path - and be reminded how to think. The
+open question was whether it belonged in Brief or in Tend, and whether a library
+needed building first.
+
+**The library already existed.** Thirteen notes tagged `Principle` under `Books`,
+split across two sub-categories for the two books, each one with a title, an
+opening sentence, and sections for why it works and how it is being practised.
+Nothing needed building. `NIB_DATA_DIR` already points at `D:\Dropbox\nib`, so it
+is reachable from outside the app, which the comment in `keep.js` still says it
+is not. That comment is now out of date and the note there should be revisited.
+
+**Why Brief and not Tend.** Tend is a surface you open when you are about to do
+something with a person, and it has the better version of this already: a
+principle attached to a named conversation in `tend_prep`, at the moment it
+applies. But that is prompted recall, and the request was for the unprompted
+kind - the aha on a morning when you were not looking for it. Brief is the one
+surface that gets read every day without being sought, so it is the only place an
+unprompted reminder can live.
+
+**Why last on the page.** Everything above it is the day making demands. This is
+the one item that asks for nothing, and putting it at the bottom makes reaching
+the bottom worth something rather than merely being the end. It carries no
+buttons and is not counted in "N things need you", for the same reason: a
+principle you have to answer is another task.
+
+**What was considered and rejected.** A section of its own with a heading, which
+would have made it look like the others and invited a second one. And letting the
+generator write the principle in its own words, which is how a library you wrote
+yourself stops being yours - the value is recognising the sentence a second time,
+and a paraphrase destroys that while looking like an improvement. The title and
+the opening sentence are copied verbatim.
+
+**The two rules that keep it from turning into a nag.** The `why` names what
+raised the principle, never what the reader did wrong. And no principle at all is
+a correct answer on a morning when the library cannot be read or everything in it
+was seen recently; `lessons.jsonl` records what was shown so the same one does
+not come round for thirty days.
+
 ## 2026-08-25 - What you owe gets its own section, because confirm cannot answer it
 
 **Decided.** A fourth section, `behind`, holding commitments past their interval

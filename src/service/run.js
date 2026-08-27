@@ -183,12 +183,13 @@ function session(model, tools, prompt, cwd, report, stage) {
  * @param {object} options
  * @param {string} options.dataDir
  * @param {string} options.jotDir
+ * @param {string} options.nibDir Nib's notes, read for the daily principle.
  * @param {string} options.repoDir Working directory for the sessions.
  * @param {boolean} [options.force] Replace today's brief instead of skipping.
  * @param {Report} [options.onReport]
  * @returns {Promise<{ ok: boolean, skipped?: boolean, reason?: string }>}
  */
-export async function runMorning({ dataDir, jotDir, repoDir, force = false, onReport }) {
+export async function runMorning({ dataDir, jotDir, nibDir, repoDir, force = false, onReport }) {
   const now = Date.now();
   const today = localDate(now);
 
@@ -238,7 +239,7 @@ export async function runMorning({ dataDir, jotDir, repoDir, force = false, onRe
   report('fetch', 'done');
 
   report('judge', `starting on ${MODELS.judge.id}`);
-  const judged = await session(MODELS.judge.id, TOOLS.judge, judgeAssignment({ dataDir }), repoDir, report, 'judge');
+  const judged = await session(MODELS.judge.id, TOOLS.judge, judgeAssignment({ dataDir, nibDir }), repoDir, report, 'judge');
   if (!judged.ok) {
     return { ok: false, reason: judged.reason };
   }

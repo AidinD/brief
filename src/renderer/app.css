@@ -777,6 +777,42 @@ button {
   color: var(--text);
 }
 
+/* --------------------------------------------------------- the lesson -- */
+
+/*
+ * The one thing on the page that asks for nothing.
+ *
+ * Quieter than a section and set apart from one: no heading rule, no border on
+ * three sides, just a rail down the left. It has to read as a change of voice
+ * rather than one more item, because everything above it is the day making
+ * demands and this is not that.
+ */
+.lesson {
+  margin: 30px 0 0;
+  padding: 2px 0 2px 16px;
+  border-left: 2px solid var(--accent-soft);
+}
+
+.lesson-title {
+  margin: 2px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+.lesson-line {
+  margin: 6px 0 0;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.lesson-source {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
 /* ------------------------------------------------------------ the ended -- */
 
 /*

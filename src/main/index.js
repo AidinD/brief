@@ -19,7 +19,7 @@ import electronUpdater from 'electron-updater';
 
 import { registerWindowControls } from 'keel/window';
 
-import { resolveDataDir, resolveJotDir } from '../domain/paths.js';
+import { resolveDataDir, resolveJotDir, resolveNibDir } from '../domain/paths.js';
 import * as api from '../service/api.js';
 import { runMorning } from '../service/run.js';
 import { openStore } from '../storage/store.js';
@@ -29,6 +29,7 @@ const { autoUpdater } = electronUpdater;
 const here = dirname(fileURLToPath(import.meta.url));
 const { dir, source } = resolveDataDir(app.getPath('userData'));
 const jot = resolveJotDir();
+const nib = resolveNibDir();
 
 /** @type {string[]} */
 const warnings = [];
@@ -95,6 +96,7 @@ const OPERATIONS = {
       return await runMorning({
         dataDir: dir,
         jotDir: jot.dir,
+        nibDir: nib.dir,
         // Only a working directory for the sessions; nothing is read from it.
         repoDir: dir,
         force: a?.force === true,

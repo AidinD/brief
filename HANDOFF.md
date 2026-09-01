@@ -1,34 +1,37 @@
 # Handoff - latest session state
 
 _Overwritten on each handoff (latest-only); prior handoffs are in git history._
-_Saved 2026-08-31 08:20. For durable rationale see DECISIONS.md; for the roadmap, PLAN.md._
+_Saved 2026-09-01 09:20. For durable rationale see DECISIONS.md; for the roadmap, PLAN.md._
 
-Brief (`D:\Repo\Tools\brief`) — handoff for a new session.
+Handoff — Brief, weekday-labeling fix, shipped and released
 
 ## Current state
-Working tree is clean, all work is committed and pushed to `main` (latest commit `f71e3ae`), and v0.1.27 is published on GitHub as Latest. 103 unit tests and 37 app-level (`npm run test:app`) checks pass; typecheck is clean.
 
-This window's four requests are all complete:
-1. Fixed a false-positive staleness warning for date-titled source revisions (`titleNamesTheDate` in `src/domain/brief.js`).
-2. Added a `behind` section (cap 3) so overdue Tend duties stop landing in `confirm`, which can only answer keep/reject.
-3. Added a `lesson` field — one daily principle quoted verbatim from a Nib library, rendered last on the page.
-4. Grew that Nib library from 13 to 25 principles, including a new private "Practice" category and a Manager's Path delegation-framework note, and fixed a self-inflicted rotation bug (30-day no-repeat would have gone silent once the library shrank below 30 entries — now falls back to least-recently-seen).
+Working tree is clean, all work committed and pushed to `main` (`cb8be78`), v0.1.28 published on GitHub as Latest (verified: not draft, not prerelease, `latest` tag points to it, all three electron-updater assets present). 104 unit tests and typecheck pass.
 
-Read `DECISIONS.md` (three newest entries) and `docs/format.md` for the durable record of what changed and why — not duplicated here.
+## What happened
 
-## Key decisions worth knowing going in
-- The `behind` section deliberately reuses the world-item shape (headline/why/anchor) rather than inventing a second renderer, and carries no buttons — see `docs/format.md` §"behind".
-- The lesson lives in **Brief**, not Tend, because Brief is the only surface read daily without being sought (Tend's recall is prompted, via `tend_prep`).
-- Library principles are copied **verbatim** (title + opening sentence), never paraphrased — recognizability is the whole value.
-- Manager's Path notes that summarize rather than quote say so explicitly in a footer ("sammanfattad snarare än citerad") rather than presenting a possibly-misremembered framework as a direct quote.
-- `judgeAssignment()` in `src/service/assignment.js` now takes `{ dataDir, nibDir }` and is the single source of truth for the judge prompt's rules (behind, confirm-answerability, lesson-verbatim, no-rebuke, rotation fallback) — all asserted against in `test/assignment.test.mjs`.
+User noticed the "Your week" section in Brief was showing wrong weekdays (screenshot showed events labelled Torsdag/Lördag/Lördag/Lördag that didn't match reality).
 
-## Loose end, not acted on
-`src/service/keep.js` still has a stale comment claiming Nib's data directory is unreachable `userData`. `NIB_DATA_DIR` now correctly points at `D:\Dropbox\nib`. Noted to the user but not fixed — worth a quick comment cleanup if picked up.
+**Root cause found by comparing `brief.json`'s `week.moments` against `mcp__tend__tend_journal` output:** the journal entries were correctly dated by their `at` epoch-ms timestamp, but every moment in the brief was labelled exactly one weekday late (Wednesday 26 Aug → "Torsdag", Friday 28 Aug → "Lördag" x3). Cause: `tend_journal` returns both `at` (exact) and `when` (a floored human phrase like "3 days ago"). A Friday-lunchtime entry is 3.87 days old on Tuesday morning, floors to "3 days ago", and counting weekdays back from that floored integer lands a day after the entry was actually written. The judge session that generated the brief had been doing exactly that arithmetic instead of reading `at`.
 
-## User's own pending actions (not mine to do)
-- Re-pin six repos on their GitHub profile (helm, claude-code-skills, tend, ai-property-scout, keel, jot) — no API for pins.
-- One manual PomPom reinstall (appId changed to `io.github.aidind.pompom`).
+## Fix (see [DECISIONS.md](DECISIONS.md) entry dated 2026-09-01 for full rationale and rejected alternatives)
+
+1. `src/service/assignment.js` — `judgeAssignment()` prompt now instructs the session to derive `week.moments[].when` from the journal entry's own `at` timestamp (converted to the reader's timezone), never from a "N days ago" phrase, and to cross-check the resulting weekday against the date before writing it.
+2. `test/assignment.test.mjs` — added a regression test asserting those instruction phrases are present in the prompt.
+3. Manually corrected today's already-written `D:\Dropbox\brief\brief.json` moments in place (Torsdag→Onsdag, Lördag→Fredag x3) since the fix only affects future judge runs, not the artifact already on disk.
+4. Committed an untracked `HANDOFF.md` left by the prior session in the same commit (it was blocking `cleanTree` in the release preflight, and its own content claims prior handoffs live in git history — which wasn't true until this commit).
+5. Also removed a stale zero-byte `.git/index.lock` (dated 30 Aug, no git process running) that was blocking `git add`.
+6. Bumped patch version 0.1.27 → 0.1.28 per this project's "bump on every commit" convention, committed, pushed, ran `npm run release` (builds, tests, typechecks, publishes via electron-builder to GitHub) — succeeded, verified via `gh release view`.
+
+## Not acted on — flagged but out of scope this session
+
+Two observations surfaced while investigating, not fixed:
+- The three "Fredag" moments in today's brief all came from a single Tend journal entry, so the week reads as three separate days when it was one. Not addressed — would need a change to how the judge groups moments per entry, not just how it dates them.
+- The week section has no defined window length in the judge prompt (`src/service/assignment.js`) — "the week" is never specified as 7 days. Not a bug today, but a latent one.
+
+Neither was requested by the user; mention only if they ask what's next or revisit the week section.
 
 ## Next steps
-None queued. The user's last request is fully shipped. Do not start new work without the user asking — this handoff exists so a fresh session has context, not a to-do list.
+
+None queued. Fix is live in the prompt (affects tomorrow's brief onward) and today's artifact was hand-corrected. Do not start new work without the user asking.

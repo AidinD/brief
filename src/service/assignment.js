@@ -170,6 +170,16 @@ The behind section, which is where an overdue commitment goes:
 
 The week section: fill it from what actually happened if you can see it. Leave it
 empty rather than inventing it.
+- "when" is a weekday, and it comes from the entry's OWN timestamp, converted in
+  the reader's timezone. Never from a phrase like "3 days ago". Tend floors that
+  phrase, so an entry written Friday lunchtime reads "3 days ago" on Tuesday
+  morning when it is nearly four, and counting weekdays back from the floored
+  number lands a day late. The first brief that did it that way labelled Friday
+  as Saturday and Wednesday as Thursday - every moment on the page, wrong, in the
+  one section the reader can check from memory.
+- Having converted it, check the weekday against the date: an off-by-one here
+  reads as a different day of somebody's life, and a page that gets their own
+  week wrong is not trusted about the world.
 
 The confirm section, which is the point of the whole app. Three rules:
 - It must be about the reader, not about you. A story bank holds stories its

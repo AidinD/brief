@@ -111,6 +111,21 @@ test('the judge is told a candidate must be answerable, and that Tend already ho
   assert.match(prompt, /must be ANSWERABLE by keep or reject/i)
 })
 
+test('a moment is dated from its timestamp, never from a "days ago" phrase', () => {
+  /*
+   * Every moment in the first brief that read the Tend journal was labelled one
+   * day late: Friday came out as Saturday, Wednesday as Thursday. The cause is
+   * that Tend's "3 days ago" is floored, so counting weekdays back from it
+   * arrives a day after the entry was actually written. The week is the one
+   * section the reader can check against their own memory, so it is the one
+   * that must not be off by one.
+   */
+  const prompt = flatJudge()
+  assert.match(prompt, /comes from the entry's OWN timestamp/i)
+  assert.match(prompt, /Never from a phrase like "3 days ago"/i)
+  assert.match(prompt, /check the weekday against the date/i)
+})
+
 test('the judge is told a backlog is not a brief', () => {
   const prompt = flatJudge()
   assert.match(prompt, /At most three/i)

@@ -3,6 +3,35 @@
 Newest first. Each entry: the date, what was decided, what else was considered,
 and why this won.
 
+## 2026-09-01 - A moment is dated from its timestamp, never from "3 days ago"
+
+**Decided.** The judge prompt now says the week section's `when` comes from the
+journal entry's own timestamp, converted in the reader's timezone, and that the
+weekday must be checked against the date before it is written.
+
+**What went wrong.** Every moment in the 1 September brief was labelled exactly
+one day late. The entry written Wednesday 26 August came out as "Torsdag"; the
+one written Friday 28 August came out as "Lördag", three times over. The reader
+noticed before the app did, which is the worst way for it to surface.
+
+**The cause is a floor, not a guess.** `tend_journal` returns both `at`, the
+epoch millisecond, and `when`, a human phrase. The phrase is floored: the Friday
+entry is 3.87 days old on Tuesday morning and reads "3 days ago". Counting
+weekdays back from the floored number lands a day after the entry was written,
+consistently, for every entry that was not written at the same hour of day. The
+timestamp beside it was right the whole time.
+
+**What was considered.** Making the app compute the label from `at` and ignore
+whatever the session wrote. Rejected: the moments are prose the session chose,
+and the app has no `at` on them - `week.moments` carries `when` and `text` and
+nothing to recompute from. Adding a timestamp per moment to `brief.json` would
+buy a check the prompt can make for free, and widen the contract for it.
+
+**Why this matters more than a date being off.** The week is the only section the
+reader can check from memory. Everything else on the page asks to be believed. A
+page that gets their own week wrong has spent the credit it needs for the world
+half.
+
 ## 2026-08-27 - The daily principle goes in Brief, and the library stays in Nib
 
 **Decided.** One principle a morning, drawn from the notes tagged `Principle` in

@@ -154,6 +154,19 @@ verbatim. It never paraphrases, never writes a new one, and never turns the
 a principle you have to answer is just another task. No principle at all is a
 fine morning; an invented one is not.
 
+**One thing to learn, and the app draws the page.** The card above the principle
+is a topic and one sentence; the three minutes behind it live in
+`learn/<id>.json` as *values* - paragraphs, lists, code - which
+`src/service/article.js` renders and escapes. Never ask a generator for HTML: it
+would be different markup every morning, and a model-written HTML file opened in
+a browser is a file that can run anything. The id is a slug because it is a
+filename, checked in `src/domain/learn.js` and again in the store, and
+`openLearn` takes no argument so the window can only ever open today's.
+
+The topic is never news, never about a repo the session cannot read, and never
+sets homework. It has one button and is still not counted in "N things need
+you" - a button that opens a page is an offer, not a question.
+
 **A section that offers an answer must be answerable.** The confirm section has
 exactly two answers, keep and reject, and everything in it has to be resolved by
 one of them. Tend's overdue duties arrived there on the first run that reached

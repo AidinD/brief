@@ -6,6 +6,8 @@
  *   brief.json        today's brief, written by whoever generated it
  *   archive/<date>.json   yesterday's, and the day before
  *   confirmed.jsonl   what you said yes to, append-only
+ *   learn/<id>.json   the three minutes behind today's topic, and the page
+ *                     this app renders out of it
  *
  * `brief.json` is disposable. It is regenerated every morning and nothing is
  * lost if it goes missing. `confirmed.jsonl` is not - it is the only thing in
@@ -23,6 +25,7 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
 import { clamp, emptyBrief, parseBrief } from '../domain/brief.js';
+import { isTopicId, parseArticle } from '../domain/learn.js';
 import { stripBom } from 'keel/storage';
 
 /**
@@ -35,6 +38,7 @@ export function openStore({ dataDir, onWarning = () => {} }) {
 
   const briefPath = join(dataDir, 'brief.json');
   const confirmedPath = join(dataDir, 'confirmed.jsonl');
+  const learnDir = join(dataDir, 'learn');
 
   /**
    * Today's brief, clamped.
@@ -92,6 +96,53 @@ export function openStore({ dataDir, onWarning = () => {} }) {
   }
 
   /**
+   * The article behind today's topic, or null.
+   *
+   * The id is checked rather than trusted. It arrives from `brief.json`, which
+   * is written by a model, and it is about to become a path - so anything that
+   * is not a plain slug is refused here rather than sanitised further down. A
+   * guard at the one place a filename is built is a guard you can actually
+   * verify; a sanitiser sprinkled along the way is not.
+   *
+   * @param {unknown} id
+   * @returns {import('../domain/learn.js').Article | null}
+   */
+  function article(id) {
+    if (!isTopicId(id)) {
+      return null;
+    }
+    const path = join(learnDir, `${id}.json`);
+    if (!existsSync(path)) {
+      return null;
+    }
+    try {
+      return parseArticle(JSON.parse(stripBom(readFileSync(path, 'utf8'))));
+    } catch (err) {
+      onWarning(`learn/${id}.json could not be read: ${err instanceof Error ? err.message : String(err)}`);
+      return null;
+    }
+  }
+
+  /**
+   * Put the rendered page on disk, next to the article it came from.
+   *
+   * Rewritten every time the button is pressed rather than cached, so a change
+   * to the template shows up on this morning's page instead of the next one.
+   *
+   * @param {string} id
+   * @param {string} html
+   */
+  function writeArticlePage(id, html) {
+    if (!isTopicId(id)) {
+      throw new Error(`"${String(id)}" is not a usable topic id.`);
+    }
+    mkdirSync(learnDir, { recursive: true });
+    const path = join(learnDir, `${id}.html`);
+    writeFileSync(path, html, 'utf8');
+    return path;
+  }
+
+  /**
    * Record that a candidate was accepted or rejected.
    *
    * Rejections are kept too, and that is the point of the section: a generator
@@ -140,5 +191,5 @@ export function openStore({ dataDir, onWarning = () => {} }) {
       .sort()
       .reverse();
 
-  return { dataDir, briefPath, confirmedPath, read, write, confirm, confirmed, archived };
+  return { dataDir, briefPath, confirmedPath, learnDir, read, write, article, writeArticlePage, confirm, confirmed, archived };
 }

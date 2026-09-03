@@ -3,6 +3,80 @@
 Newest first. Each entry: the date, what was decided, what else was considered,
 and why this won.
 
+## 2026-09-03 - A thing to learn each morning, with the long half in a second file
+
+**Decided.** One topic a day sits directly above the principle, the same size:
+a title, a sentence, and a "Learn more" button. The three minutes behind the
+button live in `learn/<id>.json`, are written as values rather than as HTML, and
+are rendered by the app into a standalone page that opens in the browser.
+
+**What was asked.** Most of the day now goes on directing models rather than
+writing the code, and the worry is the craft going quietly stale - what a
+worktree is, how Electron is actually put together, what `useEffect` really does.
+So: something small every morning, and somewhere to go deeper on the days there
+is time.
+
+**Why it sits beside the principle rather than anywhere else.** The two are a
+pair and they say so by being the same size: the principle is something already
+known coming round again, and this is something not known yet. Everything above
+them is the day making demands, and this is the second thing on the page that
+does not.
+
+**The button is not a question, which is why nothing is counted.** The confirm
+section's buttons ask something that goes stale if ignored. This one opens a
+page and can be ignored forever with nothing going wrong, so it stays out of the
+"N things need you" sentence, exactly like the principle.
+
+**Why the article is a second file.** Six hundred words inlined into the morning
+page is the first item that takes away its bottom, and the bottom is the whole
+product. One click and one window away leaves the page the length it was. The
+browser rather than a second window in the app, for the same reason: an in-app
+reader is how a page with an end grows a second screen.
+
+**Why the app renders the page and the generator does not.** Two reasons, and
+either alone would have settled it. A model writing markup writes *different*
+markup every day, and nobody builds a reading habit on a page that keeps moving.
+And a file written as raw HTML by a model, then opened in a browser, is a file
+that can contain anything a browser will run - "it would not write a script tag"
+is a hope, not a boundary. So the generator writes paragraphs, lists and code as
+values, and `service/article.js` escapes all of it. `test/learn.test.mjs` fires a
+script tag and an `onerror` at it and checks they come out as visible text.
+
+**The id is a slug because it is a filename.** It is the one place in this app
+where a value written by a model becomes a path, so it is checked at the one
+place a path is built - `[a-z0-9-]`, nothing else - and a card whose id fails is
+dropped whole rather than rendered without a working button. The window can also
+ask for exactly one article, today's: `openLearn` takes no argument, so there is
+no operation that opens a file of the caller's choosing.
+
+**The reading time is measured, never declared.** `readingMinutes` counts the
+words that are actually there. A card claiming three minutes over a
+twelve-minute page is a small lie about somebody's morning, and small lies about
+the morning are how a page stops being opened at all.
+
+**Three rules for the topic, all in the judge prompt and all asserted in
+`test/assignment.test.mjs`.** It is never news - it has to be true in five years,
+or it is the world section again in the one place immune to it. It is never about
+the reader's own repositories, because the session cannot read them and a
+confident paragraph about an unseen API is the same class of mistake as a "needs
+you" that needs somebody else. And it asks for nothing: no exercise, no homework,
+no "try this in your project".
+
+**What was considered and rejected.** A third session for the writing, rejected
+because the morning is deliberately two commands and a third is a third thing to
+get wrong. Inlining the article behind a disclosure toggle in the window,
+rejected on the bottom. And letting a topic cover keel or the suite itself, which
+is the one thing asked for that is not here: the judge runs with the data
+directory as its working directory and cannot read `D:\Repo`, so it would have
+been writing fiction about an API it has never seen. It writes the general
+mechanism instead, and giving the run a readable source directory is a separate
+decision if it is ever wanted.
+
+**Repeats never come round.** `learned.jsonl` records what was shown, and unlike
+`lessons.jsonl` there is no rotation back to the oldest: the library of
+principles is a fixed set, and topics are not. A repeat means the generator did
+not look.
+
 ## 2026-09-01 - A moment is dated from its timestamp, never from "3 days ago"
 
 **Decided.** The judge prompt now says the week section's `when` comes from the

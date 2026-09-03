@@ -24,6 +24,12 @@ Section three is the one that makes the rest of the suite work. It turns
 *remembering* into *reviewing*, which is the same trick as Jot's review column
 and the reason that column gets used.
 
+Above them sits **behind** - what Tend says you owe - and below them two small
+things that ask for nothing: **one principle** from the library you wrote
+yourself in Nib, and **one thing to learn**, a narrow piece of craft with about
+three minutes behind a button. The second is there because the days now go on
+directing models rather than typing, and the craft should not quietly go stale.
+
 ## The one rule
 
 **A brief has a bottom.** You open it, you reach the end, you close it.

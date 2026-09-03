@@ -35,6 +35,7 @@ window is watching, and a plain write is visible half-finished.
   },
   "confirm": [ { "id": "...", "kind": "decision", "text": "...", "why": "...", "evidence": "..." } ],
   "lesson": { "id": "note-...", "title": "...", "line": "...", "source": "...", "why": "..." },
+  "learn": { "id": "git-worktrees", "title": "...", "line": "...", "why": "..." },
   "provenance": { "fetch": "claude-haiku-4-5-20251001", "judge": "claude-sonnet-5" },
   "notes": ["Anything the generator wants to say about itself."]
 }
@@ -62,6 +63,7 @@ valid JSON leaves the previous brief on screen and warns.
 | `world.worthKnowing` | 7 |
 | `behind` | 3 |
 | `lesson` | 1, by shape - it is an object, not a list |
+| `learn` | 1, same way |
 | `week.moments` | 6 |
 | `confirm` | 5 |
 
@@ -125,6 +127,90 @@ days is the target, not a rule: once the library is smaller than that the least
 recently seen one comes round again, because going silent after showing
 everything once is the wrong failure. A principle worth keeping is worth meeting
 twice.
+
+**`learn` is one thing to learn, and it is the only part of the brief that has a
+second file behind it.** It sits directly above the principle, the same size,
+and the two are a pair: the principle is something already known coming round
+again, and this is something not known yet. It exists because the reader directs
+models for a living and writes less of the code than they used to - the point is
+that the craft does not quietly go stale.
+
+The card is four fields and is rendered like the principle:
+
+```json
+"learn": {
+  "id": "git-worktrees",
+  "title": "Git worktrees",
+  "line": "One or two sentences worth reading even if the page is never opened.",
+  "why": "optional - what on today's page brought it up"
+}
+```
+
+`id` is a **slug**: lowercase letters, digits and hyphens, at most 64
+characters. It is not decoration - it names the article file, so anything else
+is refused and the whole card is dropped. A card whose button could not work is
+worse than no card.
+
+`line` is not a teaser. Somebody who reads only the card should come away
+knowing one true thing; a sentence that withholds the point to make you click is
+the shape of a feed, and this app is not one.
+
+**The article lives in `learn/<id>.json`, not in the brief.** Six hundred words
+of explainer inlined into the morning page would be the first thing that took
+away its bottom. One click and one window away keeps the page the length it was.
+
+```json
+{
+  "id": "git-worktrees",
+  "title": "Git worktrees",
+  "standfirst": "One sentence saying what you will know by the end.",
+  "sections": [
+    { "heading": "...", "blocks": [
+      { "kind": "text", "text": "One paragraph." },
+      { "kind": "list", "items": ["...", "..."] },
+      { "kind": "code", "language": "bash", "code": "git worktree add ../hotfix main" },
+      { "kind": "aside", "text": "For the gotcha. Once per article at most." }
+    ]}
+  ],
+  "takeaways": ["Three or four sentences worth remembering."],
+  "sources": [{ "title": "...", "url": "https://..." }]
+}
+```
+
+**Values, never markup.** Brief renders this into HTML itself and escapes
+everything, so a `<script>` in a string arrives as visible angle brackets. That
+is deliberate twice over: a model writing markup writes different markup every
+day, and nobody builds a reading habit on a page that keeps moving - and a file
+written as raw HTML by a model, then opened in a browser, is a file that can
+contain anything a browser will run. "It would not write a script tag" is a
+hope, not a boundary.
+
+Three to five sections and roughly 500 to 700 words. **The reading time on the
+button is measured off the page**, never taken from the file: a card claiming
+three minutes over a twelve-minute article is a small lie about somebody's
+morning, and small lies about the morning are how a page stops being opened.
+
+Write the article **before** `brief.json`. The window redraws the moment the
+brief lands, and a card whose page has not been written yet renders without its
+button.
+
+Three rules for what a topic may be:
+
+- **Never news.** It has to be something still true in five years - git as it
+  actually works, the event loop, what `contextIsolation` isolates, why
+  `useEffect` runs twice in StrictMode. Anything drawn from this week is the
+  world section again, in the one place immune to it.
+- **Never about the reader's own code.** A generator cannot read their repos
+  from where it runs, and a confident paragraph about an API it has not seen is
+  the same class of mistake as a "needs you" that needs somebody else. Write the
+  general mechanism instead.
+- **It asks for nothing.** No exercise, no homework, no "try this in your
+  project". It is a read.
+
+Repeats are avoided through `learned.jsonl`, one line per morning, the same
+mechanism as `lessons.jsonl` - except that nothing ever comes round again.
+The library of principles is a fixed set and rotates; topics are not, so a
+repeat means the generator did not look.
 
 **The confirm section is the point of the whole app.** Candidate decisions worth
 logging and candidate stories worth keeping: things with nowhere else to live,

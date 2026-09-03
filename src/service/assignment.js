@@ -142,6 +142,7 @@ Shape:
   "confirm": [{ "id": "...", "kind": "decision|story|delegation|person", "text": "...",
                 "why": "...", "evidence": "..." }],
   "lesson":  { "id": "note-...", "title": "...", "line": "...", "source": "...", "why": "..." },
+  "learn":   { "id": "a-slug", "title": "...", "line": "...", "why": "..." },
   "notes":   ["anything you want to say about this run"]
 }
 
@@ -224,6 +225,90 @@ The lesson, which is one principle from a library the reader wrote themselves:
   did wrong. This is the one thing on the page that asks for nothing.
 - If the library cannot be read, or every principle is too recent, omit "lesson"
   entirely. A morning without one is fine; a made-up one is not.
+
+The thing to learn, which is the other half of the bottom of the page:
+- The reader directs models for a living and writes less of the code than they
+  used to. The principle above keeps a lesson from going stale; this keeps the
+  craft from going stale. ONE topic, every day, and it is never news - it is
+  something that will still be true in five years.
+- Pick a NARROW topic, not an area: "git worktrees" rather than "git", "why
+  useEffect runs twice in StrictMode" rather than "React hooks", "what
+  contextIsolation actually isolates" rather than "Electron security".
+- Fair game, and this list is a start rather than a fence: git as it actually
+  works (worktrees, the reflog, rebase versus merge, bisect, hooks, what a commit
+  is); JavaScript and the runtime (the event loop, closures, generators, ESM
+  versus CommonJS, structural typing, JSDoc types); Node (streams, child
+  processes, atomic file writes, path handling on Windows); Electron (main versus
+  renderer, the preload boundary, contextIsolation, IPC, asar, code signing,
+  auto-update); React and the browser (useEffect and its cleanup, reconciliation
+  and keys, refs, event delegation, layout versus paint, focus and keyboard
+  access); HTTP and the network (caching headers, CORS, TLS, DNS); data (JSON
+  versus JSONL, indexes, atomic writes, UTF-8 and normalisation, time zones);
+  security (path traversal, CSP, secrets in a repo, supply chain); testing and
+  debugging (test doubles, flaky tests, bisecting a regression, reading a
+  profile); the engineering under AI work (tokenisation, context windows,
+  embeddings, evals, why a temperature is not a confidence). A deeper look at ONE
+  principle from the library above is also a valid topic, provided it goes past
+  what the note already says.
+- Never write about the reader's own repositories, apps or shared libraries. You
+  cannot read their source from here, and a confident paragraph about an API you
+  have not seen is worse than no topic at all. Write the general mechanism the
+  thing is built on instead.
+- Never invent an API, a flag or a function name. If you are not certain a detail
+  is real, teach the mechanism and leave the detail out. If something is
+  version-dependent, name the version you mean and say it may have moved.
+- It asks for nothing. No exercise, no homework, no "try this in your project".
+  It is a read, and the reader has a day to get on with.
+
+Write TWO files for it, the article FIRST and brief.json last - the window
+redraws the moment brief.json lands, and a card whose page has not been written
+yet appears without its button.
+
+${join(dataDir, 'learn', '<id>.json')}, where <id> is the same id you put in
+"learn" - lowercase letters, digits and hyphens only, because it is a filename:
+{
+  "id": "git-worktrees",
+  "title": "Git worktrees",
+  "standfirst": "One sentence saying what you will know by the end.",
+  "sections": [
+    { "heading": "...", "blocks": [
+      { "kind": "text", "text": "One paragraph." },
+      { "kind": "list", "items": ["...", "..."] },
+      { "kind": "code", "language": "bash", "code": "git worktree add ../hotfix main" },
+      { "kind": "aside", "text": "The aside is for the gotcha, used once at most." }
+    ]}
+  ],
+  "takeaways": ["Three or four sentences worth remembering."],
+  "sources": [{ "title": "...", "url": "https://..." }]
+}
+
+- Values, never markup. The app renders this into the page and escapes
+  everything, so HTML in a string arrives as visible angle brackets.
+- Three to five sections, about 500 to 700 words in total. That is three minutes,
+  and the app measures it rather than taking your word for it.
+- Every code block must be correct as written and small enough to read in one
+  look. A plausible-looking command that does not work costs the whole section
+  its credibility.
+- Sources are optional and must be real - the official documentation, a
+  specification, a maintainer's own writing. A guessed URL is worse than none.
+  You have no web access here; cite only what you are certain exists.
+
+The card in brief.json:
+"learn": { "id": "git-worktrees", "title": "Git worktrees",
+           "line": "One or two sentences that are worth reading on their own,
+                    even if the page behind them is never opened.",
+           "why": "optional - what on today's page brought it up" }
+
+- "line" is not a teaser. Somebody who reads only the card should come away
+  knowing one true thing; a sentence that withholds the point to make you click
+  is the shape of a feed, and this app is not one.
+- "why" only when the connection is real, and never a rebuke.
+
+Read ${join(dataDir, 'learned.jsonl')} if it exists and never repeat a topic that
+appears in it - all of it, not the last thirty. Unlike the library of principles
+this is not a fixed set: there is always another topic, so a repeat means you did
+not look. After writing the brief, append one line:
+{"at": <epoch ms>, "date": "<today>", "id": "<the id>", "title": "..."}.
 
 Write the prose in Swedish, keeping å, ä and ö. Write to a temporary file in the
 same directory and rename it into place - the window is watching, and a plain

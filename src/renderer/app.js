@@ -116,6 +116,44 @@ function lessonNote(lesson) {
 }
 
 /**
+ * One thing to learn, and the way in to the three minutes behind it.
+ *
+ * Sits directly above the principle, and is the same size as it. The two belong
+ * together at the bottom: one is something already known coming round again, the
+ * other is something not known yet, and neither is the day making a demand.
+ *
+ * It carries one button and is still not counted in "N things need you". A
+ * button is not the same thing as a question - this one opens a page and can be
+ * ignored forever without anything going stale, which is precisely what the
+ * confirm section's buttons cannot claim.
+ *
+ * The button appears only when there is genuinely a page behind it. `ready`
+ * comes from main, which has looked: the renderer has no filesystem, and a
+ * "Learn more" that opens nothing is worse than a card with no button at all.
+ *
+ * @param {any} learn
+ * @param {{ ready: boolean, minutes: number | null }} article
+ */
+function learnCard(learn, article) {
+  if (learn === null || learn === undefined) {
+    return '';
+  }
+  const minutes = article.minutes === null ? '' : ` · ${article.minutes} min`;
+  return `
+    <aside class="learn">
+      <p class="eyebrow">One thing to learn</p>
+      <p class="learn-title">${esc(learn.title)}</p>
+      <p class="learn-line">${esc(learn.line)}</p>
+      ${learn.why ? `<p class="learn-why">${esc(learn.why)}</p>` : ''}
+      ${
+        article.ready
+          ? `<button class="learn-more" data-learn="1">Learn more${minutes}</button>`
+          : ''
+      }
+    </aside>`;
+}
+
+/**
  * One candidate in the confirm section.
  *
  * @param {any} candidate
@@ -617,6 +655,8 @@ async function render() {
       }
     </section>
 
+    ${learnCard(today.learn ?? null, state.article ?? { ready: false, minutes: null })}
+
     ${lessonNote(today.lesson ?? null)}
 
     <div class="end">
@@ -681,6 +721,20 @@ document.addEventListener('click', async (event) => {
       progress = { stage: 'failed', message: result.reason ?? 'the run did not finish' };
     }
     await draw();
+    return;
+  }
+
+  const learnMore = target.closest('[data-learn]');
+  if (learnMore instanceof HTMLElement) {
+    // The failure is worth saying out loud rather than swallowing: a button that
+    // does nothing when pressed is the one thing that stops this section being
+    // trusted, and the usual cause - the article file never got written - is
+    // invisible from the window.
+    const result = await brief.invoke('openLearn');
+    if (result?.error) {
+      progress = { stage: 'learn', message: result.error };
+      await draw();
+    }
     return;
   }
 

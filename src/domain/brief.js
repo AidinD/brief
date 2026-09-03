@@ -14,6 +14,8 @@
  * There is no unread count anywhere in this app, and no badge. Deliberately.
  */
 
+import { parseTopic } from './learn.js';
+
 /**
  * The caps.
  *
@@ -75,6 +77,7 @@ export const LIMITS = {
  * @property {{ summary: string, moments: { id: string, text: string, when?: string }[] }} week
  * @property {Candidate[]} confirm
  * @property {Lesson | null} lesson One principle from the library, or nothing.
+ * @property {import('./learn.js').Topic | null} learn One thing to learn, or nothing.
  * @property {{ fetch?: string, judge?: string }} [provenance] Which model produced which half.
  * @property {string[]} [notes] Anything the generator wants to say about itself.
  */
@@ -97,6 +100,7 @@ export function emptyBrief(date, now) {
     week: { summary: '', moments: [] },
     confirm: [],
     lesson: null,
+    learn: null,
     notes: []
   };
 }
@@ -348,6 +352,10 @@ export function parseBrief(raw, fallbackDate, now) {
     },
     confirm,
     lesson: parseLesson(input.lesson),
+    // Same treatment as the principle: null rather than half a card. The card
+    // carries a button, and a button that opens nothing is worse than an absent
+    // section - it teaches the reader that the bottom of the page is broken.
+    learn: parseTopic(input.learn),
     // Kept exactly as written. A brief that records nothing must stay recording
     // nothing, so the window can say "there is no way to tell" rather than
     // inventing a reassuring default.

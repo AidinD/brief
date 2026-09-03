@@ -69,6 +69,27 @@ const OPERATIONS = {
     return problem ? { error: problem } : { opened: true };
   },
   answer: (/** @type {any} */ a) => api.answer(store, a.id, a.verdict, Date.now()),
+
+  /**
+   * Open today's deep dive in the browser.
+   *
+   * `shell.openPath`, like `openKept`, because this is a file the app itself
+   * wrote out of the data directory - not a link a model handed us. Nothing from
+   * the brief reaches this call: the id comes from today's brief inside the
+   * service, is checked against a slug, and the HTML is rendered here rather
+   * than read from anywhere.
+   *
+   * The browser rather than a second window, deliberately. A brief has a bottom,
+   * and an in-app reader is how the page that had one grows a second screen.
+   */
+  openLearn: async () => {
+    const page = api.learnPage(store, Date.now());
+    if (page.error !== undefined) {
+      return { error: page.error };
+    }
+    const problem = await shell.openPath(page.path);
+    return problem ? { error: problem } : { opened: page.path };
+  },
   context: () => api.context({ dataDir: dir, jotDir: jot.dir }),
 
   outbound: () => api.outbound({ dataDir: dir, jotDir: jot.dir }),

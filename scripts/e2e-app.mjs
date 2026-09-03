@@ -25,7 +25,7 @@
  */
 
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -590,6 +590,113 @@ try {
   check('half a lesson is no lesson, because a title alone is not a thought', () => {
     if (halfFilled !== 0) {
       throw new Error('a lesson with no sentence was rendered anyway');
+    }
+  });
+
+  /* ----------------------------------------------------------- learn -- */
+
+  step('One thing to learn');
+
+  const anArticle = {
+    id: 'git-worktrees',
+    title: 'Git worktrees',
+    standfirst: 'Vad en worktree faktiskt är.',
+    sections: [
+      {
+        heading: 'Vad det är',
+        blocks: [
+          { kind: 'text', text: 'En till arbetskatalog kopplad till samma .git-databas.' },
+          { kind: 'code', language: 'bash', code: 'git worktree add ../hotfix main' }
+        ]
+      }
+    ],
+    takeaways: ['Databasen delas, arbetskatalogen gör det inte.'],
+    sources: [{ title: 'git-worktree', url: 'https://git-scm.com/docs/git-worktree' }]
+  };
+
+  mkdirSync(join(scratch, 'learn'), { recursive: true });
+  writeFileSync(join(scratch, 'learn', 'git-worktrees.json'), JSON.stringify(anArticle), 'utf8');
+
+  writeBrief(todayLocal(), {
+    lesson: {
+      id: 'note-sample',
+      title: '1.1 · Kritisera inte - fråga i stället',
+      line: 'Kritik får nästan alltid mottagaren att försvara sitt beslut.'
+    },
+    learn: {
+      id: 'git-worktrees',
+      title: 'Git worktrees',
+      line: 'En worktree är ännu en arbetskatalog kopplad till samma .git-mapp.',
+      why: 'Två agenter i samma repo i veckan'
+    }
+  });
+  await page.waitFor("document.querySelector('.learn') !== null", 'the topic');
+
+  const learn = await page.text('.learn');
+  check('the topic reads on its own, so a card nobody opens still said something', () => {
+    if (!/Git worktrees/.test(learn)) {
+      throw new Error(`the title is missing: "${learn.slice(0, 200)}"`);
+    }
+    if (!/ännu en arbetskatalog/.test(learn)) {
+      throw new Error(`the sentence did not survive: "${learn.slice(0, 200)}"`);
+    }
+  });
+
+  const learnButtons = await page.count('.learn button');
+  const learnLabel = await page.text('.learn-more');
+  check('and offers exactly one way in, with the real length on it', () => {
+    if (learnButtons !== 1) {
+      throw new Error(`expected one button, saw ${learnButtons}`);
+    }
+    // Measured off the article, never taken from the brief: a card claiming
+    // three minutes over a twelve-minute page is a small lie about somebody's
+    // morning.
+    if (!/Learn more · \d+ min/.test(learnLabel)) {
+      throw new Error(`expected a reading time on the button, saw "${learnLabel}"`);
+    }
+  });
+
+  const learnPosition = await page.evaluate(
+    "(() => { const l = document.querySelector('.learn'); const p = document.querySelector('.lesson'); return l === null || p === null ? -1 : (l.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_FOLLOWING) ? 1 : 0; })()"
+  );
+  const learnCounted = await page.text('.masthead-title');
+  check('it sits above the principle and still asks for nothing', () => {
+    if (learnPosition !== 1) {
+      throw new Error('the topic is not directly above the principle');
+    }
+    // A button is not a question. This one opens a page and can be ignored
+    // forever without anything going stale, which is why it is not counted.
+    if (!/^One thing needs you/.test(learnCounted)) {
+      throw new Error(`the topic changed the count, saw "${learnCounted}"`);
+    }
+  });
+
+  // Deliberately not clicked. The button hands the page to the operating
+  // system, and a test run that opens a browser window fights whoever is using
+  // the machine - the same reason nothing here moves the pointer. What the
+  // window is responsible for is the button being there only when the page is.
+  rmSync(join(scratch, 'learn', 'git-worktrees.json'), { force: true });
+  writeBrief(todayLocal(), {
+    learn: { id: 'git-worktrees', title: 'Git worktrees', line: 'En worktree är ännu en arbetskatalog.' }
+  });
+  await page.waitFor("document.querySelector('.learn-more') === null", 'the button to go');
+
+  const orphaned = await page.count('.learn');
+  check('with no page written, the card stays and the button does not', () => {
+    // A "Learn more" that opens nothing is the one way this section is worse
+    // than absent - the same rule as a story source with a dead link.
+    if (orphaned !== 1) {
+      throw new Error('the card went away with its article, losing what it did say');
+    }
+  });
+
+  writeBrief(todayLocal());
+  await page.waitFor("document.querySelector('.learn') === null", 'a morning with no topic');
+
+  const noTopic = await page.count('.learn');
+  check('and a morning with no topic shows nothing at all, rather than an empty slot', () => {
+    if (noTopic !== 0) {
+      throw new Error('an empty topic card was left on the page');
     }
   });
 

@@ -12,7 +12,9 @@
 import { join } from 'node:path';
 
 import { checkProvenance } from '../domain/models.js';
+import { readingMinutes } from '../domain/learn.js';
 import { localDate } from '../domain/time.js';
+import { renderArticle } from './article.js';
 import { holdings } from './holdings.js';
 import { readInterests, removeInterest, renameInterest, searchable, setInterest, weakness } from './interests.js';
 import { keep } from './keep.js';
@@ -34,7 +36,47 @@ export function today(store, now) {
         .map((job) => checkProvenance(brief.provenance?.[job], job))
         .filter((result) => !result.ok);
 
-  return { brief, dropped, problems, doubts, missing, today: date, models };
+  /*
+   * Whether the topic has a page behind it, and how long it takes.
+   *
+   * Worked out here rather than in the window for the same reason the model
+   * check is: the renderer has no filesystem, and a "Learn more" button that
+   * opens nothing is the one way this section can be worse than absent. Same
+   * rule as a story's sources - a link that goes nowhere is worse than no link.
+   *
+   * The minutes are measured off the page, never taken from the brief. A card
+   * claiming three minutes over a twelve-minute article is a small lie about
+   * somebody's morning, and small lies about the morning are how a page stops
+   * being opened.
+   */
+  const piece = missing ? null : store.article(brief.learn?.id);
+  const article = { ready: piece !== null, minutes: piece === null ? null : readingMinutes(piece) };
+
+  return { brief, dropped, problems, doubts, missing, today: date, models, article };
+}
+
+/**
+ * Render today's deep dive and say where it landed.
+ *
+ * Takes no id. The renderer could pass one, and then the window would be able
+ * to ask for any file in `learn/` - which is a capability nothing needs and
+ * somebody would eventually widen. The only article this app opens is the one
+ * today's brief points at.
+ *
+ * @param {ReturnType<typeof import('../storage/store.js').openStore>} store
+ * @param {number} now
+ */
+export function learnPage(store, now) {
+  const date = localDate(now);
+  const { brief, missing } = store.read(date, now);
+  if (missing || brief.learn === null) {
+    return { error: "There is no topic on today's brief." };
+  }
+  const article = store.article(brief.learn.id);
+  if (article === null) {
+    return { error: `Nothing was written for "${brief.learn.title}". The page would have been learn/${brief.learn.id}.json.` };
+  }
+  return { path: store.writeArticlePage(article.id, renderArticle(article, { date: brief.date })) };
 }
 
 /**

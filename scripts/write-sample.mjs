@@ -13,7 +13,7 @@
  *   node scripts/write-sample.mjs [--force]
  */
 
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { localDate } from '../src/domain/time.js';
@@ -118,8 +118,76 @@ const brief = {
     source: 'How to Win Friends and Influence People',
     why: 'Fyra feedbackrundor väntar'
   },
+  learn: {
+    id: 'git-worktrees',
+    title: 'Git worktrees',
+    line: 'En worktree är ännu en arbetskatalog kopplad till samma .git-mapp, så två brancher kan vara utcheckade samtidigt utan att något stashas.',
+    why: 'Två agenter i samma repo i veckan'
+  },
   notes: ['Sample brief. Written by scripts/write-sample.mjs, not by a model.']
 };
 
+/*
+ * The article too, because the card is half the feature.
+ *
+ * A sample brief whose "Learn more" button is missing looks like a bug in the
+ * window rather than like a sample with one file left out - the button is only
+ * drawn when the page behind it exists, which is exactly the behaviour this is
+ * here to show off.
+ */
+/** @type {import('../src/domain/learn.js').Article} */
+const article = {
+  id: 'git-worktrees',
+  title: 'Git worktrees',
+  standfirst: 'Vad en worktree faktiskt är, och varför den löser problemet som stash inte löser.',
+  sections: [
+    {
+      heading: 'Vad det är',
+      blocks: [
+        {
+          kind: 'text',
+          text: 'Ett git-repo består av två saker: databasen i .git och en arbetskatalog med filerna utcheckade. Normalt hör exakt en arbetskatalog till en databas. En worktree är ytterligare en arbetskatalog kopplad till samma databas, på en annan plats i filsystemet, med en egen utcheckad branch och ett eget index.'
+        },
+        {
+          kind: 'code',
+          language: 'bash',
+          code: 'git worktree add ../brief-hotfix main\ngit worktree list\ngit worktree remove ../brief-hotfix'
+        }
+      ]
+    },
+    {
+      heading: 'Varför inte bara stash',
+      blocks: [
+        {
+          kind: 'text',
+          text: 'stash flyttar undan ändringarna men lämnar en arbetskatalog. Ska du bygga, köra tester eller starta appen i det gamla läget samtidigt som du fortsätter i det nya behöver du två kataloger på disk, inte en katalog i två tillstånd.'
+        },
+        {
+          kind: 'list',
+          items: [
+            'node_modules och byggresultat är per katalog, så inget behöver byggas om när du växlar.',
+            'Två agentsessioner kan arbeta i samma repo utan att kliva på varandras filer.',
+            'Historiken är gemensam. En commit i en worktree syns direkt i den andra.'
+          ]
+        },
+        {
+          kind: 'aside',
+          text: 'Samma branch kan inte vara utcheckad i två worktrees samtidigt. Git vägrar, och det är avsiktligt.'
+        }
+      ]
+    }
+  ],
+  takeaways: [
+    'En worktree är en till arbetskatalog, inte en till klon: databasen delas.',
+    'Den löser "jag behöver båda lägena körbara samtidigt", vilket stash inte gör.',
+    'Städa med git worktree remove, inte med rm - annars ligger en referens kvar.'
+  ],
+  sources: [{ title: 'git-worktree, official documentation', url: 'https://git-scm.com/docs/git-worktree' }]
+};
+
+mkdirSync(join(dataDir, 'learn'), { recursive: true });
+writeFileSync(join(dataDir, 'learn', `${article.id}.json`), JSON.stringify(article, null, 2), 'utf8');
+
 const path = store.write(brief);
 console.log(`Wrote ${path}`);
+console.log(`Wrote ${join(dataDir, 'learn', `${article.id}.json`)}`);

@@ -174,3 +174,52 @@ test('the principle may never be turned into a rebuke, or invented', () => {
   assert.match(prompt, /an invented one is worse than none/i)
   assert.match(prompt, /A morning without one is fine/i)
 })
+
+test('the topic is craft, never news, and never about code it cannot read', () => {
+  /*
+   * Two failure modes, and both look fine on the page.
+   *
+   * A topic drawn from what happened this week is the world section again, in
+   * the one place that was supposed to be immune to it - the value of this card
+   * is precisely that it is still true in five years.
+   *
+   * And a confident paragraph about keel or Jot, written by a session that
+   * cannot read their source, is the same class of mistake as a "needs you"
+   * that needs somebody else: it costs more trust than a missing topic does.
+   */
+  const prompt = flatJudge()
+
+  assert.match(prompt, /it is never news/i)
+  assert.match(prompt, /still be true in five years/i)
+  assert.match(prompt, /Never write about the reader's own repositories/i)
+  assert.match(prompt, /Never invent an API, a flag or a function name/i)
+})
+
+test('the topic asks for nothing, like the principle beside it', () => {
+  // A card at the bottom of the page that ends in "try this in your project" is
+  // one more task, on the one part of the page that is not supposed to have any.
+  const prompt = flatJudge()
+
+  assert.match(prompt, /No exercise, no homework/i)
+  assert.match(prompt, /It is a read/i)
+})
+
+test('the topic card is readable on its own, rather than being a teaser', () => {
+  // The line between this and a feed. A sentence that withholds the point to
+  // make you click is what an engagement surface writes.
+  const prompt = flatJudge()
+
+  assert.match(prompt, /"line" is not a teaser/i)
+  assert.match(prompt, /knowing one true thing/i)
+})
+
+test('the deep dive is written as values, and the article lands before the brief', () => {
+  const prompt = flatJudge()
+
+  assert.match(prompt, /learn.<id>\.json/i, 'the article has a named file')
+  assert.match(prompt, /lowercase letters, digits and hyphens only/i, 'because it is a filename')
+  assert.match(prompt, /Values, never markup/i)
+  assert.match(prompt, /the article FIRST and brief\.json last/i)
+  assert.match(prompt, /learned\.jsonl/, 'rotation has a file to read and append to')
+  assert.match(prompt, /never repeat a topic that appears in it/i)
+})
